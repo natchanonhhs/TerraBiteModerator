@@ -34,20 +34,29 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50">
         
+        <!-- TOPBAR พร้อมปุ่มเปิด/ปิดเดลิเวอรี่ -->
+        <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+            <h2 class="text-lg font-bold text-slate-800">จัดการออเดอร์ 
+                <span class="text-xs font-normal text-emerald-600 ml-2" id="db-status-order">
+                    <i class="fas fa-circle-notch fa-spin"></i> เชื่อมต่อฐานข้อมูล...
+                </span>
+            </h2>
+            
+            <!-- ปุ่มสวิตช์เปิด/ปิดรับเดลิเวอรี่ -->
+            <div class="flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
+                <span class="text-xs font-bold text-slate-600">สถานะเดลิเวอรี่:</span>
+                <button id="delivery-toggle-btn" onclick="toggleDeliveryStatus()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                    กำลังตรวจสอบ...
+                </button>
+            </div>
+        </header>
+
         <!-- ========================================== -->
         <!-- 🟢 หน้าจัดการออเดอร์ -->
         <!-- ========================================== -->
-        <div id="view-orders" class="flex flex-col h-full w-full">
-            <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-                <h2 class="text-lg font-bold text-slate-800">จัดการออเดอร์ 
-                    <span class="text-xs font-normal text-emerald-600 ml-2" id="db-status-order">
-                        <i class="fas fa-circle-notch fa-spin"></i> เชื่อมต่อฐานข้อมูล...
-                    </span>
-                </h2>
-            </header>
-
-            <!-- แถบตัวกรอง (มีเดลิเวอรี่แล้ว!) -->
-            <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div id="view-orders" class="flex flex-col flex-1 overflow-hidden w-full">
+            <!-- แถบตัวกรอง -->
+            <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide shrink-0">
                 <button onclick="window.setOrderFilter('all')" id="btn-all" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
                     ทั้งหมด (<span id="count-all">0</span>)
                 </button>
@@ -67,15 +76,13 @@
         <!-- ========================================== -->
         <!-- 🟢 หน้าจัดการเมนู -->
         <!-- ========================================== -->
-        <div id="view-menu" class="hidden flex-col h-full w-full">
-            <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">จัดการคลังเมนูอาหาร</h2>
-                </div>
+        <div id="view-menu" class="hidden flex-col flex-1 overflow-hidden w-full">
+            <div class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-800">จัดการคลังเมนูอาหาร</h2>
                 <button onclick="openMenuPanel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
                     <i class="fas fa-plus"></i> สร้างเมนูใหม่
                 </button>
-            </header>
+            </div>
             <div class="flex-1 overflow-auto p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="menu-list-container"></div>
             </div>
@@ -84,7 +91,7 @@
     </main>
 
     <!-- ========================================== -->
-    <!-- 🟢 สไลด์พาเนล: สร้างเมนูใหม่ (รองรับภาพ) -->
+    <!-- 🟢 สไลด์พาเนล: สร้างเมนูใหม่ -->
     <!-- ========================================== -->
     <div id="menu-panel-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden"></div>
     <div id="menu-panel" class="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
@@ -94,16 +101,14 @@
         </div>
         
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
-            <!-- ฟอร์มอัปโหลดรูปภาพ -->
             <section class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <label class="block text-slate-600 text-sm font-bold mb-2">รูปภาพเมนู</label>
                 <input type="file" id="menu-img-upload" accept="image/*" onchange="uploadImage(this)" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
                 <p id="upload-status" class="text-xs text-slate-500 mt-2">รองรับ JPG, PNG (ขนาดไม่เกิน 2MB)</p>
-                <input type="hidden" id="menu-img-url"> <!-- เก็บ URL ที่ได้จาก Supabase -->
+                <input type="hidden" id="menu-img-url">
                 <img id="img-preview" class="mt-3 h-32 rounded-lg object-cover hidden shadow-sm border border-slate-200">
             </section>
 
-            <!-- ข้อมูลพื้นฐาน -->
             <section class="grid grid-cols-2 gap-4">
                 <div class="col-span-2">
                     <label class="block text-slate-600 text-sm font-bold mb-1">ชื่อเมนู <span class="text-rose-500">*</span></label>
@@ -115,7 +120,6 @@
                 </div>
             </section>
 
-            <!-- จัดการ Option -->
             <section class="border-t border-slate-200 pt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="text-sm font-bold text-slate-800">ตัวเลือกเสริม (Options / ท็อปปิ้ง)</h4>
@@ -135,14 +139,13 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- สคริปต์ทำงาน (Firebase + Supabase Storage + Logic) -->
+    <!-- SCRIPT (Admin Dashboard) -->
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        // --- ตั้งค่า Firebase (Database) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAsgcKhn0V1lYjF754aypxZv5C-PmHCvno",
             authDomain: "mobile-first-5543c.firebaseapp.com",
@@ -154,51 +157,70 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- ตั้งค่า Supabase (Storage) ---
         const supabaseUrl = 'https://vupihvoldblwdtkfnjjc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // ==========================================
-        // 1. ระบบอัปโหลดรูปภาพ (Supabase Storage)
-        // ==========================================
+        let isDeliveryOpen = true;
+
+        // จัดการเปิด/ปิดสถานะเดลิเวอรี่ผ่าน Firebase (collection: settings, doc: shop)
+        window.toggleDeliveryStatus = async () => {
+            isDeliveryOpen = !isDeliveryOpen;
+            try {
+                await setDoc(doc(db, "settings", "shop"), { deliveryOpen: isDeliveryOpen }, { merge: true });
+                updateDeliveryButtonUI(isDeliveryOpen);
+            } catch (e) {
+                console.error("Error updating status:", e);
+                alert("ไม่สามารถเปลี่ยนสถานะได้");
+            }
+        };
+
+        function updateDeliveryButtonUI(isOpen) {
+            const btn = document.getElementById('delivery-toggle-btn');
+            if (isOpen) {
+                btn.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-white shadow-sm hover:bg-emerald-600";
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> เปิดรับเดลิเวอรี่';
+            } else {
+                btn.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-500 text-white shadow-sm hover:bg-rose-600";
+                btn.innerHTML = '<i class="fas fa-ban"></i> ปิดรับเดลิเวอรี่';
+            }
+        }
+
+        // โหลดสถานะเริ่มต้นจาก Firebase
+        async function loadShopStatus() {
+            const docRef = doc(db, "settings", "shop");
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                isDeliveryOpen = docSnap.data().deliveryOpen ?? true;
+            } else {
+                await setDoc(docRef, { deliveryOpen: true });
+                isDeliveryOpen = true;
+            }
+            updateDeliveryButtonUI(isDeliveryOpen);
+        }
+        loadShopStatus();
+
         window.uploadImage = async (input) => {
             const file = input.files[0];
             if(!file) return;
-
             const status = document.getElementById('upload-status');
             status.innerHTML = '<i class="fas fa-spinner fa-spin text-emerald-600"></i> กำลังอัปโหลดภาพ...';
-            
             try {
-                // สร้างชื่อไฟล์ใหม่ไม่ให้ซ้ำ
                 const fileExt = file.name.split('.').pop();
                 const fileName = `menu_${Date.now()}.${fileExt}`;
-                
-                // อัปโหลดขึ้น Bucket ชื่อ restaurant-assets
-                const { data, error } = await supabase.storage
-                    .from('restaurant-assets')
-                    .upload(fileName, file);
-
+                const { data, error } = await supabase.storage.from('restaurant-assets').upload(fileName, file);
                 if (error) throw error;
-
-                // ดึง URL ภาพมาเก็บไว้ใน Input ซ่อน และแสดงภาพตัวอย่าง
                 const { data: publicUrlData } = supabase.storage.from('restaurant-assets').getPublicUrl(fileName);
                 const imageUrl = publicUrlData.publicUrl;
-
                 document.getElementById('menu-img-url').value = imageUrl;
                 document.getElementById('img-preview').src = imageUrl;
                 document.getElementById('img-preview').classList.remove('hidden');
                 status.innerHTML = '<i class="fas fa-check-circle text-emerald-600"></i> อัปโหลดสำเร็จ!';
-
             } catch (error) {
-                console.error('Upload Error:', error);
-                status.innerHTML = '<i class="fas fa-times-circle text-rose-500"></i> อัปโหลดล้มเหลว (ตรวจสอบ SQL Bucket)';
+                status.innerHTML = '<i class="fas fa-times-circle text-rose-500"></i> อัปโหลดล้มเหลว';
             }
         };
 
-        // ==========================================
-        // 2. ระบบสลับหน้าต่าง (Navigation)
-        // ==========================================
         window.switchView = (view) => {
             document.getElementById('view-orders').classList.add('hidden');
             document.getElementById('view-orders').classList.remove('flex');
@@ -219,9 +241,6 @@
             }
         };
 
-        // ==========================================
-        // 3. ระบบออเดอร์ และตัวกรอง (มี Delivery)
-        // ==========================================
         let activeOrders = []; 
         let currentOrderFilter = 'all';
 
@@ -236,7 +255,6 @@
         window.renderOrders = () => {
             const container = document.getElementById('order-container');
             container.innerHTML = '';
-            
             document.getElementById('count-all').innerText = activeOrders.length;
             document.getElementById('count-dine').innerText = activeOrders.filter(o => o.type === 'dine-in' || o.table).length;
             document.getElementById('count-del').innerText = activeOrders.filter(o => o.type === 'delivery').length;
@@ -253,7 +271,6 @@
             filtered.forEach(order => {
                 const isDel = order.type === 'delivery';
                 const color = isDel ? 'rose' : 'emerald';
-                
                 let itemsHTML = (order.items || []).map(item => `
                     <div class="py-2 border-b border-slate-50 flex justify-between text-sm">
                         <div class="flex-1 pr-2">
@@ -284,6 +301,7 @@
 
         const qOrder = query(collection(db, "orders"), orderBy("timestamp", "desc"));
         onSnapshot(qOrder, (snapshot) => {
+            document.getElementById('db-status-order').innerHTML = '<i class="fas fa-check-circle"></i> ซิงค์ข้อมูลเรียบร้อย';
             activeOrders = [];
             snapshot.forEach((docSnap) => {
                 if(docSnap.data().status !== 'เสร็จสิ้น') activeOrders.push({ id: docSnap.id, ...docSnap.data() });
@@ -297,11 +315,7 @@
             }
         };
 
-        // ==========================================
-        // 4. ระบบจัดการเมนูและสร้าง Option
-        // ==========================================
         let optionGroups = [];
-        
         window.openMenuPanel = () => {
             document.getElementById('menu-panel-overlay').classList.remove('hidden');
             document.getElementById('menu-panel').classList.remove('translate-x-full');
@@ -336,7 +350,6 @@
         window.renderOptionBuilder = () => {
             const container = document.getElementById('options-builder-container');
             container.innerHTML = optionGroups.length === 0 ? '<p class="text-xs text-slate-400">ยังไม่มีตัวเลือกเสริม</p>' : '';
-            
             optionGroups.forEach((g, gIdx) => {
                 let chcHtml = g.choices.map((c, cIdx) => `
                     <div class="flex gap-2 mb-2">
@@ -363,13 +376,10 @@
             });
         };
 
-        // บันทึกเมนูทั้งหมดลง Firebase
         window.saveMenuToFirebase = async () => {
             const name = document.getElementById('menu-name').value;
             const price = parseFloat(document.getElementById('menu-price').value);
-            // ดึง URL ภาพที่อัปโหลดเข้า Supabase แล้ว หรือใช้ภาพ Default
             const imgUrl = document.getElementById('menu-img-url').value || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'; 
-
             if(!name || isNaN(price)) return alert('กรุณากรอกชื่อและราคาให้ครบถ้วน');
 
             const btn = document.getElementById('btn-save-menu');
@@ -382,19 +392,13 @@
             })).filter(g => g.choices.length > 0);
 
             await addDoc(collection(db, "menu_items"), { 
-                name, 
-                price, 
-                img: imgUrl, 
-                options: cleanOptions, 
-                created_at: new Date() 
+                name, price, img: imgUrl, options: cleanOptions, created_at: new Date() 
             });
-            
             btn.innerHTML = 'บันทึกข้อมูลเข้าระบบ';
             btn.disabled = false;
             window.closeMenuPanel();
         };
 
-        // แสดงผลเมนูแบบ Real-time
         const qMenu = query(collection(db, "menu_items"), orderBy("created_at", "desc"));
         onSnapshot(qMenu, (snapshot) => {
             const container = document.getElementById('menu-list-container');
@@ -420,7 +424,6 @@
         });
 
         window.deleteMenu = async (id) => { if(confirm('ลบเมนูถาวร?')) await deleteDoc(doc(db, "menu_items", id)); };
-
     </script>
 </body>
 </html>
