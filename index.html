@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omnichannel Admin - สมบูรณ์ 100%</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="text-slate-800 flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col z-20 shadow-xl hidden md:flex">
+        <div class="p-6 border-b border-slate-800 bg-slate-950">
+            <h1 class="text-xl font-bold text-emerald-400">The Grand</h1>
+            <p class="text-xs text-slate-500 mt-1">POS & Management</p>
+        </div>
+        <div class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-1">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2">DASHBOARD</p>
+            <button onclick="switchView('orders')" id="nav-orders" class="w-full flex items-center gap-3 px-4 py-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-sm font-medium border border-emerald-500/20 transition-all text-left">
+                <i class="fas fa-bell w-5 text-center"></i> ออเดอร์ (Live)
+            </button>
+            <button onclick="switchView('menu')" id="nav-menu" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
+                <i class="fas fa-utensils w-5 text-center"></i> จัดการเมนู & Option
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50">
+        
+        <!-- ========================================== -->
+        <!-- 🟢 หน้าจัดการออเดอร์ -->
+        <!-- ========================================== -->
+        <div id="view-orders" class="flex flex-col h-full w-full">
+            <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+                <h2 class="text-lg font-bold text-slate-800">จัดการออเดอร์ 
+                    <span class="text-xs font-normal text-emerald-600 ml-2" id="db-status-order">
+                        <i class="fas fa-circle-notch fa-spin"></i> เชื่อมต่อฐานข้อมูล...
+                    </span>
+                </h2>
+            </header>
+
+            <!-- แถบตัวกรอง (มีเดลิเวอรี่แล้ว!) -->
+            <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide">
+                <button onclick="window.setOrderFilter('all')" id="btn-all" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
+                    ทั้งหมด (<span id="count-all">0</span>)
+                </button>
+                <button onclick="window.setOrderFilter('dine-in')" id="btn-dine" class="px-5 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                    <i class="fas fa-chair text-emerald-500"></i> หน้าร้าน (<span id="count-dine">0</span>)
+                </button>
+                <button onclick="window.setOrderFilter('delivery')" id="btn-del" class="px-5 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                    <i class="fas fa-motorcycle text-rose-500"></i> เดลิเวอรี่ (<span id="count-del">0</span>)
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="order-container"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 🟢 หน้าจัดการเมนู -->
+        <!-- ========================================== -->
+        <div id="view-menu" class="hidden flex-col h-full w-full">
+            <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">จัดการคลังเมนูอาหาร</h2>
+                </div>
+                <button onclick="openMenuPanel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
+                    <i class="fas fa-plus"></i> สร้างเมนูใหม่
+                </button>
+            </header>
+            <div class="flex-1 overflow-auto p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="menu-list-container"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- 🟢 สไลด์พาเนล: สร้างเมนูใหม่ (รองรับภาพ) -->
+    <!-- ========================================== -->
+    <div id="menu-panel-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden"></div>
+    <div id="menu-panel" class="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-utensils text-emerald-600 mr-2"></i>สร้างเมนูอาหาร</h3>
+            <button onclick="closeMenuPanel()" class="text-slate-500 hover:text-rose-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- ฟอร์มอัปโหลดรูปภาพ -->
+            <section class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="block text-slate-600 text-sm font-bold mb-2">รูปภาพเมนู (อัปโหลดขึ้น Supabase)</label>
+                <input type="file" id="menu-img-upload" accept="image/*" onchange="uploadImage(this)" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                <p id="upload-status" class="text-xs text-slate-500 mt-2">รองรับ JPG, PNG (ขนาดไม่เกิน 2MB)</p>
+                <input type="hidden" id="menu-img-url"> <!-- เก็บ URL ที่ได้จาก Supabase -->
+                <img id="img-preview" class="mt-3 h-32 rounded-lg object-cover hidden shadow-sm border border-slate-200">
+            </section>
+
+            <!-- ข้อมูลพื้นฐาน -->
+            <section class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ชื่อเมนู <span class="text-rose-500">*</span></label>
+                    <input type="text" id="menu-name" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ราคา (บาท) <span class="text-rose-500">*</span></label>
+                    <input type="number" id="menu-price" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500">
+                </div>
+            </section>
+
+            <!-- จัดการ Option -->
+            <section class="border-t border-slate-200 pt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-sm font-bold text-slate-800">ตัวเลือกเสริม (Options / ท็อปปิ้ง)</h4>
+                    <button onclick="addOptionGroup()" class="text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg font-bold border border-emerald-100 hover:bg-emerald-100">
+                        + เพิ่มกลุ่มตัวเลือก
+                    </button>
+                </div>
+                <div id="options-builder-container" class="space-y-4"></div>
+            </section>
+        </div>
+
+        <div class="p-6 border-t border-slate-200 bg-white flex justify-end gap-3">
+            <button onclick="saveMenuToFirebase()" id="btn-save-menu" class="px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md w-full sm:w-auto">
+                บันทึกข้อมูลเข้าระบบ
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- สคริปต์ทำงาน (Firebase + Supabase Storage + Logic) -->
+    <!-- ========================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // --- ตั้งค่า Firebase (Database) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsgcKhn0V1lYjF754aypxZv5C-PmHCvno",
+            authDomain: "mobile-first-5543c.firebaseapp.com",
+            projectId: "mobile-first-5543c",
+            storageBucket: "mobile-first-5543c.firebasestorage.app",
+            messagingSenderId: "375984636440",
+            appId: "1:375984636440:web:685692699c3320e201f96d"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- ตั้งค่า Supabase (Storage) ---
+        const supabaseUrl = 'https://vupihvoldblwdtkfnjjc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // ==========================================
+        // 1. ระบบอัปโหลดรูปภาพ (Supabase Storage)
+        // ==========================================
+        window.uploadImage = async (input) => {
+            const file = input.files[0];
+            if(!file) return;
+
+            const status = document.getElementById('upload-status');
+            status.innerHTML = '<i class="fas fa-spinner fa-spin text-emerald-600"></i> กำลังอัปโหลดภาพ...';
+            
+            try {
+                // สร้างชื่อไฟล์ใหม่ไม่ให้ซ้ำ
+                const fileExt = file.name.split('.').pop();
+                const fileName = `menu_${Date.now()}.${fileExt}`;
+                
+                // อัปโหลดขึ้น Bucket ชื่อ restaurant-assets
+                const { data, error } = await supabase.storage
+                    .from('restaurant-assets')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                // ดึง URL ภาพมาเก็บไว้ใน Input ซ่อน และแสดงภาพตัวอย่าง
+                const { data: publicUrlData } = supabase.storage.from('restaurant-assets').getPublicUrl(fileName);
+                const imageUrl = publicUrlData.publicUrl;
+
+                document.getElementById('menu-img-url').value = imageUrl;
+                document.getElementById('img-preview').src = imageUrl;
+                document.getElementById('img-preview').classList.remove('hidden');
+                status.innerHTML = '<i class="fas fa-check-circle text-emerald-600"></i> อัปโหลดสำเร็จ!';
+
+            } catch (error) {
+                console.error('Upload Error:', error);
+                status.innerHTML = '<i class="fas fa-times-circle text-rose-500"></i> อัปโหลดล้มเหลว (ตรวจสอบ SQL Bucket)';
+            }
+        };
+
+        // ==========================================
+        // 2. ระบบสลับหน้าต่าง (Navigation)
+        // ==========================================
+        window.switchView = (view) => {
+            document.getElementById('view-orders').classList.add('hidden');
+            document.getElementById('view-orders').classList.remove('flex');
+            document.getElementById('view-menu').classList.add('hidden');
+            document.getElementById('view-menu').classList.remove('flex');
+
+            document.getElementById('nav-orders').className = "w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 rounded-lg text-sm transition-all text-left";
+            document.getElementById('nav-menu').className = "w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 rounded-lg text-sm transition-all mt-2 text-left";
+
+            if(view === 'orders') {
+                document.getElementById('view-orders').classList.remove('hidden');
+                document.getElementById('view-orders').classList.add('flex');
+                document.getElementById('nav-orders').classList.add('bg-emerald-600/20', 'text-emerald-400', 'border-emerald-500/20');
+            } else {
+                document.getElementById('view-menu').classList.remove('hidden');
+                document.getElementById('view-menu').classList.add('flex');
+                document.getElementById('nav-menu').classList.add('bg-emerald-600/20', 'text-emerald-400', 'border-emerald-500/20');
+            }
+        };
+
+        // ==========================================
+        // 3. ระบบออเดอร์ และตัวกรอง (มี Delivery)
+        // ==========================================
+        let activeOrders = []; 
+        let currentOrderFilter = 'all';
+
+        window.setOrderFilter = (type) => {
+            currentOrderFilter = type;
+            document.getElementById('btn-all').className = type === 'all' ? "px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50";
+            document.getElementById('btn-dine').className = type === 'dine-in' ? "px-5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium flex items-center gap-2" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50";
+            document.getElementById('btn-del').className = type === 'delivery' ? "px-5 py-2 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-sm font-medium flex items-center gap-2" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50";
+            window.renderOrders();
+        };
+
+        window.renderOrders = () => {
+            const container = document.getElementById('order-container');
+            container.innerHTML = '';
+            
+            document.getElementById('count-all').innerText = activeOrders.length;
+            document.getElementById('count-dine').innerText = activeOrders.filter(o => o.type === 'dine-in' || o.table).length;
+            document.getElementById('count-del').innerText = activeOrders.filter(o => o.type === 'delivery').length;
+            
+            let filtered = activeOrders;
+            if(currentOrderFilter === 'dine-in') filtered = activeOrders.filter(o => o.type === 'dine-in' || o.table);
+            if(currentOrderFilter === 'delivery') filtered = activeOrders.filter(o => o.type === 'delivery');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-slate-400">ยังไม่มีออเดอร์ในหมวดหมู่นี้</div>`;
+                return;
+            }
+
+            filtered.forEach(order => {
+                const isDel = order.type === 'delivery';
+                const color = isDel ? 'rose' : 'emerald';
+                
+                let itemsHTML = (order.items || []).map(item => `
+                    <div class="py-2 border-b border-slate-50 flex justify-between text-sm">
+                        <div class="flex-1 pr-2">
+                            <span class="font-bold bg-slate-100 px-1 rounded">${item.qty || 1}x</span> ${item.name}
+                            ${item.options ? `<p class="text-xs text-amber-600 mt-1 pl-6">- ${item.options}</p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-${color}-500 flex flex-col h-full">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl">
+                            <div>
+                                <p class="font-bold text-lg">${isDel ? (order.customer || 'ลูกค้าเดลิเวอรี่') : `โต๊ะ ${order.table}`}</p>
+                                <p class="text-[10px] text-slate-400">ID: ${order.id}</p>
+                            </div>
+                            <span class="px-2 py-1 bg-${color}-100 text-${color}-700 font-bold rounded text-[10px] uppercase">${isDel ? 'Delivery' : 'Dine-In'}</span>
+                        </div>
+                        <div class="p-4 flex-1">${itemsHTML}</div>
+                        <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl flex justify-between items-center">
+                            <span class="font-bold text-lg">฿${order.total || 0}</span>
+                            <button onclick="window.updateOrderStatus('${order.id}')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold">ปิดออเดอร์</button>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        const qOrder = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+        onSnapshot(qOrder, (snapshot) => {
+            activeOrders = [];
+            snapshot.forEach((docSnap) => {
+                if(docSnap.data().status !== 'เสร็จสิ้น') activeOrders.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            window.renderOrders();
+        });
+
+        window.updateOrderStatus = async (orderId) => {
+            if(confirm('ยืนยันทำอาหารเสร็จและปิดออเดอร์?')) {
+                await updateDoc(doc(db, "orders", orderId), { status: "เสร็จสิ้น" });
+            }
+        };
+
+        // ==========================================
+        // 4. ระบบจัดการเมนูและสร้าง Option
+        // ==========================================
+        let optionGroups = [];
+        
+        window.openMenuPanel = () => {
+            document.getElementById('menu-panel-overlay').classList.remove('hidden');
+            document.getElementById('menu-panel').classList.remove('translate-x-full');
+            document.getElementById('menu-name').value = '';
+            document.getElementById('menu-price').value = '';
+            document.getElementById('menu-img-url').value = '';
+            document.getElementById('img-preview').classList.add('hidden');
+            document.getElementById('upload-status').innerText = 'รองรับ JPG, PNG (ขนาดไม่เกิน 2MB)';
+            document.getElementById('menu-img-upload').value = '';
+            optionGroups = [];
+            window.renderOptionBuilder();
+        };
+
+        window.closeMenuPanel = () => {
+            document.getElementById('menu-panel').classList.add('translate-x-full');
+            setTimeout(() => document.getElementById('menu-panel-overlay').classList.add('hidden'), 300);
+        };
+
+        window.addOptionGroup = () => {
+            optionGroups.push({ id: `g_${Date.now()}`, title: '', type: 'single', choices: [{ name: '', price: 0 }] });
+            window.renderOptionBuilder();
+        };
+
+        window.addChoice = (gId) => {
+            optionGroups.find(g => g.id === gId).choices.push({ name: '', price: 0 });
+            window.renderOptionBuilder();
+        };
+
+        window.updateGrp = (gId, field, val) => optionGroups.find(g => g.id === gId)[field] = val;
+        window.updateChc = (gId, cIdx, field, val) => optionGroups.find(g => g.id === gId).choices[cIdx][field] = field === 'price' ? parseFloat(val)||0 : val;
+
+        window.renderOptionBuilder = () => {
+            const container = document.getElementById('options-builder-container');
+            container.innerHTML = optionGroups.length === 0 ? '<p class="text-xs text-slate-400">ยังไม่มีตัวเลือกเสริม</p>' : '';
+            
+            optionGroups.forEach((g, gIdx) => {
+                let chcHtml = g.choices.map((c, cIdx) => `
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" placeholder="ชื่อ (เช่น ไข่ดาว)" value="${c.name}" onchange="updateChc('${g.id}', ${cIdx}, 'name', this.value)" class="w-full p-2 border rounded-lg text-sm outline-none">
+                        <input type="number" placeholder="+ราคา" value="${c.price}" onchange="updateChc('${g.id}', ${cIdx}, 'price', this.value)" class="w-24 p-2 border rounded-lg text-sm outline-none">
+                    </div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="border border-slate-200 p-4 rounded-xl bg-slate-50 mb-3 shadow-sm">
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <input type="text" placeholder="ชื่อกลุ่ม (เช่น ความเผ็ด)" value="${g.title}" onchange="updateGrp('${g.id}', 'title', this.value)" class="w-full p-2 border rounded-lg text-sm font-bold outline-none">
+                            <select onchange="updateGrp('${g.id}', 'type', this.value)" class="p-2 border rounded-lg text-sm outline-none">
+                                <option value="single" ${g.type === 'single' ? 'selected':''}>🔘 บังคับเลือก 1 ข้อ</option>
+                                <option value="multiple" ${g.type === 'multiple' ? 'selected':''}>☑️ เลือกได้หลายข้อ (ท็อปปิ้ง)</option>
+                            </select>
+                        </div>
+                        <div class="pl-2 border-l-2 border-emerald-200">
+                            ${chcHtml}
+                            <button onclick="addChoice('${g.id}')" class="text-xs text-emerald-600 font-bold mt-1 bg-emerald-100 px-2 py-1 rounded">+ เพิ่มช้อยส์</button>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        // บันทึกเมนูทั้งหมดลง Firebase
+        window.saveMenuToFirebase = async () => {
+            const name = document.getElementById('menu-name').value;
+            const price = parseFloat(document.getElementById('menu-price').value);
+            // ดึง URL ภาพที่อัปโหลดเข้า Supabase แล้ว หรือใช้ภาพ Default
+            const imgUrl = document.getElementById('menu-img-url').value || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'; 
+
+            if(!name || isNaN(price)) return alert('กรุณากรอกชื่อและราคาให้ครบถ้วน');
+
+            const btn = document.getElementById('btn-save-menu');
+            btn.innerHTML = 'กำลังบันทึก...';
+            btn.disabled = true;
+
+            const cleanOptions = optionGroups.map(g => ({
+                id: g.id, title: g.title || 'ตัวเลือก', type: g.type,
+                choices: g.choices.filter(c => c.name.trim() !== '')
+            })).filter(g => g.choices.length > 0);
+
+            await addDoc(collection(db, "menu_items"), { 
+                name, 
+                price, 
+                img: imgUrl, 
+                options: cleanOptions, 
+                created_at: new Date() 
+            });
+            
+            btn.innerHTML = 'บันทึกข้อมูลเข้าระบบ';
+            btn.disabled = false;
+            window.closeMenuPanel();
+        };
+
+        // แสดงผลเมนูแบบ Real-time
+        const qMenu = query(collection(db, "menu_items"), orderBy("created_at", "desc"));
+        onSnapshot(qMenu, (snapshot) => {
+            const container = document.getElementById('menu-list-container');
+            container.innerHTML = '';
+            snapshot.forEach((docSnap) => {
+                const m = docSnap.data();
+                container.innerHTML += `
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+                        <img src="${m.img}" class="w-full h-32 object-cover bg-slate-200">
+                        <div class="p-4 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold leading-tight">${m.name}</h3>
+                                <span class="text-emerald-600 font-bold ml-2">฿${m.price}</span>
+                            </div>
+                            <div class="mt-auto pt-3 flex justify-between items-center border-t border-slate-100">
+                                <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded">มี ${m.options ? m.options.length : 0} Option</span>
+                                <button onclick="deleteMenu('${docSnap.id}')" class="text-xs text-rose-500 hover:underline"><i class="fas fa-trash-alt"></i> ลบ</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+        window.deleteMenu = async (id) => { if(confirm('ลบเมนูถาวร?')) await deleteDoc(doc(db, "menu_items", id)); };
+
+    </script>
+</body>
+</html>
