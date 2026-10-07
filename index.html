@@ -22,7 +22,12 @@
         </div>
         <div class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-1">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2">DASHBOARD</p>
-            <button onclick="switchView('orders')" id="nav-orders" class="w-full flex items-center gap-3 px-4 py-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-sm font-medium border border-emerald-500/20 transition-all text-left">
+            
+            <button onclick="switchView('pos')" id="nav-pos" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
+                <i class="fas fa-cash-register w-5 text-center"></i> แคชเชียร์ (POS)
+            </button>
+            
+            <button onclick="switchView('orders')" id="nav-orders" class="w-full flex items-center gap-3 px-4 py-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg text-sm font-medium border border-emerald-500/20 transition-all text-left mt-2">
                 <i class="fas fa-bell w-5 text-center"></i> ออเดอร์ (รายการ)
             </button>
             <button onclick="switchView('menu')" id="nav-menu" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
@@ -53,9 +58,63 @@
             </div>
         </header>
 
-        <!-- ========================================== -->
-        <!-- 🟢 หน้าจัดการออเดอร์ -->
-        <!-- ========================================== -->
+        <!-- POS VIEW -->
+        <div id="view-pos" class="hidden flex-1 overflow-hidden w-full bg-slate-100 flex-row">
+            <div class="flex-1 flex flex-col overflow-hidden relative">
+                <div id="pos-category-filters" class="bg-white px-4 py-3 flex gap-3 overflow-x-auto scrollbar-hide border-b border-slate-200 shrink-0 shadow-sm"></div>
+                <div class="flex-1 overflow-auto p-4 pb-24">
+                    <div id="pos-menu-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                </div>
+            </div>
+
+            <div class="w-[400px] bg-white border-l border-slate-200 flex flex-col shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-10">
+                <div class="p-4 border-b border-slate-200 bg-emerald-50 flex justify-between items-center">
+                    <h2 class="font-bold text-base text-emerald-800 flex-1 truncate pr-2" id="pos-cart-title"><i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน</h2>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="openPendingBillsModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-1">
+                            <i class="fas fa-list"></i> บิลรอชำระ
+                        </button>
+                        <span id="pos-cart-count" class="bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-xs font-bold shadow-sm">0 รายการ</span>
+                    </div>
+                </div>
+                
+                <div id="pos-cart-items" class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50">
+                    <div class="text-center text-slate-400 py-10 text-sm">
+                        <i class="fas fa-utensils text-4xl mb-3 text-slate-300"></i><br>
+                        ยังไม่มีรายการสั่งอาหาร
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="flex justify-between text-sm mb-2 text-slate-600">
+                        <span>รวมย่อย (Subtotal)</span>
+                        <span id="pos-subtotal" class="font-bold">฿0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-2 text-rose-500">
+                        <span id="pos-discount-label">ส่วนลด (Discount)</span>
+                        <span id="pos-discount" class="font-bold">- ฿0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold text-slate-800 mb-4 border-t border-slate-100 pt-3">
+                        <span>ยอดสุทธิ (Total)</span>
+                        <span id="pos-total" class="text-emerald-600 text-2xl">฿0.00</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button onclick="saveOrderToTable(event)" class="p-3 border-2 border-sky-300 bg-sky-50 text-sky-700 rounded-xl text-sm font-bold hover:bg-sky-100 active:scale-95 transition-all flex justify-center items-center gap-2">
+                            <i class="fas fa-chair"></i> เปิดโต๊ะ/ส่งครัว
+                        </button>
+                        <button onclick="clearPosCart()" class="p-3 border-2 border-rose-300 bg-rose-50 text-rose-700 rounded-xl text-sm font-bold hover:bg-rose-100 active:scale-95 transition-all flex justify-center items-center gap-2">
+                            <i class="fas fa-trash-alt"></i> ล้างตะกร้า
+                        </button>
+                    </div>
+                    <button onclick="openPosCheckout()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-xl shadow-lg hover:bg-emerald-700 active:scale-95 transition-all flex justify-center items-center gap-2">
+                        <i class="fas fa-cash-register"></i> ชำระเงิน (Checkout)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDERS VIEW -->
         <div id="view-orders" class="flex flex-col flex-1 overflow-hidden w-full">
             <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide shrink-0">
                 <button onclick="window.setOrderFilter('all')" id="btn-all" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
@@ -74,9 +133,7 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 หน้าจัดการเมนู -->
-        <!-- ========================================== -->
+        <!-- MENU VIEW -->
         <div id="view-menu" class="hidden flex-col flex-1 overflow-hidden w-full">
             <div class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-800">จัดการคลังเมนูอาหาร</h2>
@@ -84,18 +141,13 @@
                     <i class="fas fa-plus"></i> สร้างเมนูใหม่
                 </button>
             </div>
-            <!-- ตัวกรองหมวดหมู่เมนู -->
-            <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide shrink-0" id="menu-category-filters">
-                <!-- หมวดหมู่จะถูกโหลดที่นี่อัตโนมัติ -->
-            </div>
+            <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide shrink-0" id="menu-category-filters"></div>
             <div class="flex-1 overflow-auto p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="menu-list-container"></div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 หน้าจัดการโปรโมชั่น & คูปอง -->
-        <!-- ========================================== -->
+        <!-- COUPONS VIEW -->
         <div id="view-coupons" class="hidden flex-col flex-1 overflow-hidden w-full">
             <div class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-800">คูปองส่วนลด & โปรโมชั่น</h2>
@@ -110,22 +162,100 @@
 
     </main>
 
-    <!-- ========================================== -->
-    <!-- 🟢 Modal: ดูออเดอร์แบบเต็มจอ (Fullscreen) -->
-    <!-- ========================================== -->
+    <!-- MODALS -->
+    <div id="pos-option-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[105] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden transform scale-95 transition-transform" id="pos-option-modal-content">
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-bold text-slate-800" id="pos-opt-title">เลือกตัวเลือกเมนู</h3>
+                <button onclick="closePosOptionModal()" class="text-slate-400 hover:text-rose-500 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-5" id="pos-opt-body"></div>
+            <div class="p-5 border-t border-slate-200 bg-white">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-600 mb-2"><i class="fas fa-edit text-emerald-500 mr-1"></i> หมายเหตุถึงห้องครัว (ถ้ามี)</label>
+                    <input type="text" id="pos-opt-note" placeholder="เช่น ไม่ใส่ผงชูรส, เผ็ดน้อยมาก" class="w-full p-3 border border-slate-300 rounded-xl outline-none focus:border-emerald-500 text-sm">
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 bg-slate-100 p-2 rounded-xl">
+                        <button onclick="changePosOptQty(-1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-bold text-xl text-rose-500 active:scale-90">-</button>
+                        <span id="pos-opt-qty" class="font-bold text-lg w-6 text-center">1</span>
+                        <button onclick="changePosOptQty(1)" class="w-10 h-10 bg-white rounded-lg shadow-sm font-bold text-xl text-emerald-500 active:scale-90">+</button>
+                    </div>
+                    <button onclick="confirmPosItem()" class="flex-1 bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg hover:bg-emerald-700 active:scale-95 transition-transform">
+                        เพิ่มลงออเดอร์ <span id="pos-opt-totalprice" class="ml-2 font-normal">(฿0)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pos-pending-bills-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[115] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-list text-amber-500 mr-2"></i>บิลรอชำระ (โต๊ะที่กำลังทาน/รอทำอาหาร)</h3>
+                <button onclick="closePendingBillsModal()" class="text-slate-400 hover:text-rose-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-5" id="pos-pending-bills-list"></div>
+        </div>
+    </div>
+
+    <div id="pos-checkout-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[110] hidden justify-center items-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col md:flex-row overflow-hidden max-h-[95vh]">
+            <div class="w-full md:w-1/3 bg-slate-800 text-white p-6 flex flex-col">
+                <h3 class="text-xl font-bold mb-4 text-emerald-400 border-b border-slate-700 pb-3">ยอดที่ต้องชำระ</h3>
+                <div class="text-5xl font-bold mb-6 text-center py-4 bg-slate-900 rounded-xl shadow-inner text-emerald-300" id="pos-checkout-total">฿0</div>
+                <div class="flex-1 overflow-y-auto mb-4 border-t border-slate-700 pt-4" id="pos-checkout-items-summary"></div>
+            </div>
+            
+            <div class="w-full md:w-2/3 p-6 bg-slate-50 flex flex-col relative">
+                <button onclick="closePosCheckout()" class="absolute top-4 right-4 text-slate-400 hover:text-rose-500 text-3xl leading-none">&times;</button>
+                <h3 class="text-xl font-bold text-slate-800 mb-6"><i class="fas fa-wallet text-emerald-600 mr-2"></i>เลือกช่องทางการชำระเงิน</h3>
+                
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <button onclick="selectPaymentMethod('cash')" id="pay-btn-cash" class="py-4 border-2 border-emerald-500 bg-emerald-50 rounded-xl font-bold text-emerald-700 flex flex-col items-center gap-2 transition-all">
+                        <i class="fas fa-money-bill-wave text-2xl"></i> เงินสด
+                    </button>
+                    <button onclick="selectPaymentMethod('qr')" id="pay-btn-qr" class="py-4 border-2 border-slate-200 bg-white rounded-xl font-bold text-slate-600 hover:border-blue-400 hover:bg-blue-50 flex flex-col items-center gap-2 transition-all">
+                        <i class="fas fa-qrcode text-2xl"></i> สแกน QR
+                    </button>
+                    <button onclick="selectPaymentMethod('card')" id="pay-btn-card" class="py-4 border-2 border-slate-200 bg-white rounded-xl font-bold text-slate-600 hover:border-purple-400 hover:bg-purple-50 flex flex-col items-center gap-2 transition-all">
+                        <i class="fas fa-credit-card text-2xl"></i> บัตรเครดิต
+                    </button>
+                </div>
+
+                <div id="pos-cash-calculator" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 flex-1">
+                    <label class="block text-sm font-bold text-slate-600 mb-2">รับเงินสดมา (บาท)</label>
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <button onclick="addCashAmount(100)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-slate-700">+100</button>
+                        <button onclick="addCashAmount(500)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-slate-700">+500</button>
+                        <button onclick="addCashAmount(1000)" class="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-slate-700">+1,000</button>
+                        <button onclick="setExactCash()" class="py-2 bg-emerald-100 hover:bg-emerald-200 rounded-lg font-bold text-emerald-700 text-xs">พอดี</button>
+                    </div>
+                    <input type="number" id="pos-cash-received" oninput="calculatePosChange()" placeholder="0.00" class="w-full p-4 text-2xl font-bold border-2 border-slate-300 rounded-xl outline-none focus:border-emerald-500 text-right mb-4">
+                    
+                    <div class="flex justify-between items-center p-4 bg-amber-50 rounded-xl border border-amber-200">
+                        <span class="font-bold text-amber-800 text-lg">เงินทอน:</span>
+                        <span id="pos-cash-change" class="font-bold text-amber-600 text-3xl">฿0</span>
+                    </div>
+                </div>
+
+                <div class="mt-auto">
+                    <button onclick="submitPosCheckout()" id="btn-submit-pos" class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold text-xl shadow-lg hover:bg-slate-900 active:scale-95 transition-transform flex justify-center items-center gap-2">
+                        <i class="fas fa-check-circle"></i> ยืนยันชำระเงิน & พิมพ์ใบเสร็จ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="order-fullscreen-modal" class="fixed inset-0 bg-slate-900 text-white z-[100] hidden flex-col pb-8">
         <div class="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800">
             <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-receipt text-emerald-400"></i> รายละเอียดออเดอร์</h2>
             <button onclick="closeOrderFullscreen()" class="text-slate-400 hover:text-white text-3xl">&times;</button>
         </div>
-        <div class="flex-1 overflow-y-auto p-8" id="order-fullscreen-content">
-            <!-- เนื้อหาเต็มจอจะถูกแทรกที่นี่ -->
-        </div>
+        <div class="flex-1 overflow-y-auto p-8" id="order-fullscreen-content"></div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 🟢 สไลด์พาเนล: สร้าง/แก้ไขเมนู -->
-    <!-- ========================================== -->
     <div id="menu-panel-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden"></div>
     <div id="menu-panel" class="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
         <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -181,9 +311,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 🟢 สไลด์พาเนล: สร้าง/แก้ไขคูปองโปรโมชั่น -->
-    <!-- ========================================== -->
     <div id="coupon-panel-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden"></div>
     <div id="coupon-panel" class="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
         <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -212,7 +339,6 @@
                 </div>
             </div>
 
-            <!-- การตั้งค่าเพิ่มเติม -->
             <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div class="col-span-2">
                     <label class="block text-slate-600 text-sm font-bold mb-1">การแสดงผลให้ลูกค้าเห็น</label>
@@ -240,9 +366,7 @@
                     <label class="block text-slate-600 text-sm font-bold">เลือกเมนูที่สามารถใช้คูปองนี้ได้</label>
                     <button onclick="toggleAllCoupons(true)" class="text-xs text-emerald-600 hover:underline">เลือกทั้งหมด</button>
                 </div>
-                <div id="coupon-applicable-items" class="space-y-2 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-lg bg-slate-50">
-                    <!-- Checkboxes ของเมนูจะแสดงที่นี่ -->
-                </div>
+                <div id="coupon-applicable-items" class="space-y-2 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-lg bg-slate-50"></div>
             </div>
         </div>
 
@@ -253,9 +377,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SCRIPT (Admin Dashboard) -->
-    <!-- ========================================== -->
+    <!-- SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -277,13 +399,28 @@
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         let isDeliveryOpen = true;
-        let adminMenus = []; // เก็บเมนูทั้งหมดเพื่อใช้อ้างอิง
-        let adminCoupons = []; // เก็บข้อมูลคูปอง
+        let adminMenus = []; 
+        let adminCoupons = []; 
         let currentMenuCategory = 'all';
         let activeOrders = []; 
         let currentOrderFilter = 'all';
+        let currentOrderDiscount = 0; // ตัวเก็บค่าส่วนลดของบิลที่ดึงมา
+        let currentOrderCouponCode = ''; // ตัวเก็บบันทึกรหัสคูปอง
 
-        // จัดการเปิด/ปิดสถานะเดลิเวอรี่
+        window.getSafeItemTotal = (item) => {
+            if (!item) return 0;
+            if (item.totalItemPrice !== undefined && !isNaN(item.totalItemPrice)) {
+                return parseFloat(item.totalItemPrice);
+            }
+            const p = parseFloat(item.price) || 0;
+            const q = parseInt(item.qty) || 1;
+            if (p > 0) return p * q;
+            
+            const foundMenu = adminMenus.find(m => m.name === item.name);
+            const menuPrice = foundMenu ? parseFloat(foundMenu.price) || 0 : 0;
+            return menuPrice * q;
+        };
+
         window.toggleDeliveryStatus = async () => {
             isDeliveryOpen = !isDeliveryOpen;
             try {
@@ -341,15 +478,15 @@
         };
 
         window.switchView = (view) => {
-            ['orders', 'menu', 'coupons'].forEach(v => {
+            ['pos', 'orders', 'menu', 'coupons'].forEach(v => {
                 const viewEl = document.getElementById(`view-${v}`);
                 const navEl = document.getElementById(`nav-${v}`);
                 if(viewEl) {
                     viewEl.classList.add('hidden');
-                    viewEl.classList.remove('flex');
+                    viewEl.classList.remove('flex', 'flex-row', 'flex-col');
                 }
                 if(navEl) {
-                    navEl.className = "w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 rounded-lg text-sm transition-all mt-2 text-left";
+                    navEl.className = "w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left";
                 }
             });
 
@@ -358,41 +495,56 @@
             
             if(activeView) {
                 activeView.classList.remove('hidden');
-                activeView.classList.add('flex');
+                if(view === 'pos') {
+                    activeView.classList.add('flex', 'flex-row');
+                } else {
+                    activeView.classList.add('flex', 'flex-col');
+                }
             }
             if(activeNav) {
-                activeNav.className = "w-full flex items-center gap-3 px-4 py-2 bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm transition-all text-left";
-                if(view !== 'orders') activeNav.classList.add('mt-2');
+                activeNav.className = "w-full flex items-center gap-3 px-4 py-2.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-medium transition-all text-left";
+                if(view !== 'pos' && view !== 'orders') activeNav.classList.add('mt-2');
             }
         };
 
         window.setOrderFilter = (type) => {
             currentOrderFilter = type;
-            document.getElementById('btn-all').className = type === 'all' ? "px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50";
-            document.getElementById('btn-dine').className = type === 'dine-in' ? "px-5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium flex items-center gap-2" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50";
-            document.getElementById('btn-del').className = type === 'delivery' ? "px-5 py-2 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-sm font-medium flex items-center gap-2" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50";
+            document.getElementById('btn-all').className = type === 'all' ? "px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors";
+            document.getElementById('btn-dine').className = type === 'dine-in' ? "px-5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors";
+            document.getElementById('btn-del').className = type === 'delivery' ? "px-5 py-2 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors";
             window.renderOrders();
         };
 
         window.renderOrders = () => {
             const container = document.getElementById('order-container');
             container.innerHTML = '';
-            document.getElementById('count-all').innerText = activeOrders.length;
-            document.getElementById('count-dine').innerText = activeOrders.filter(o => o.type === 'dine-in' || o.table).length;
-            document.getElementById('count-del').innerText = activeOrders.filter(o => o.type === 'delivery').length;
             
-            let filtered = activeOrders;
-            if(currentOrderFilter === 'dine-in') filtered = activeOrders.filter(o => o.type === 'dine-in' || o.table);
-            if(currentOrderFilter === 'delivery') filtered = activeOrders.filter(o => o.type === 'delivery');
+            let displayOrders = activeOrders.filter(o => o.status !== 'รอชำระเงิน');
+
+            document.getElementById('count-all').innerText = displayOrders.length;
+            document.getElementById('count-dine').innerText = displayOrders.filter(o => o.type === 'dine-in' || o.table).length;
+            document.getElementById('count-del').innerText = displayOrders.filter(o => o.type === 'delivery').length;
+            
+            let filtered = displayOrders;
+            if(currentOrderFilter === 'dine-in') filtered = displayOrders.filter(o => o.type === 'dine-in' || o.table);
+            if(currentOrderFilter === 'delivery') filtered = displayOrders.filter(o => o.type === 'delivery');
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-20 text-slate-400">ยังไม่มีออเดอร์ในหมวดหมู่นี้</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-slate-400">ยังไม่มีออเดอร์ให้ทำในขณะนี้</div>`;
                 return;
             }
 
             filtered.forEach(order => {
                 const isDel = order.type === 'delivery';
                 const color = isDel ? 'rose' : 'emerald';
+                
+                let orderTotal = parseFloat(order.total);
+                if (isNaN(orderTotal) || orderTotal <= 0) {
+                    const sub = (order.items || []).reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
+                    const disc = parseFloat(order.discount) || 0;
+                    orderTotal = sub - disc;
+                }
+
                 let itemsHTML = (order.items || []).slice(0, 3).map(item => `
                     <div class="py-1 flex justify-between text-xs text-slate-600">
                         <span class="truncate pr-2"><span class="font-bold bg-slate-100 px-1 rounded mr-1">${item.qty || 1}x</span> ${item.name}</span>
@@ -404,7 +556,7 @@
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-${color}-500 flex flex-col h-full">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl">
                             <div>
-                                <p class="font-bold text-lg">${isDel ? (order.customer || 'ลูกค้าเดลิเวอรี่') : `โต๊ะ ${order.table}`}</p>
+                                <p class="font-bold text-lg">${isDel ? (order.customer || 'ลูกค้าเดลิเวอรี่') : `โต๊ะ ${order.table || 'Walk-in'}`}</p>
                                 <p class="text-[10px] text-slate-400">ID: ${order.id}</p>
                             </div>
                             <span class="px-2 py-1 bg-${color}-100 text-${color}-700 font-bold rounded text-[10px] uppercase">${isDel ? 'Delivery' : 'Dine-In'}</span>
@@ -414,15 +566,14 @@
                             <button onclick="window.viewOrderFullscreen('${order.id}')" class="w-full mt-3 bg-slate-100 text-slate-600 font-bold text-xs py-2 rounded-lg hover:bg-slate-200 transition-colors"><i class="fas fa-expand-alt mr-1"></i> ดูเต็มจอ</button>
                         </div>
                         <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl flex justify-between items-center">
-                            <span class="font-bold text-lg">฿${order.total || 0}</span>
-                            <button onclick="window.updateOrderStatus('${order.id}')" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold">ปิดออเดอร์</button>
+                            <span class="font-bold text-lg">฿${orderTotal}</span>
+                            <button onclick="window.updateOrderStatus('${order.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ทำอาหารเสร็จแล้ว</button>
                         </div>
                     </div>
                 `;
             });
         };
 
-        // แสดงออเดอร์เต็มจอ (Fullscreen Modal)
         window.viewOrderFullscreen = (orderId) => {
             const order = activeOrders.find(o => o.id === orderId);
             if(!order) return;
@@ -430,15 +581,29 @@
             const isDel = order.type === 'delivery';
             const color = isDel ? 'rose' : 'emerald';
             
-            let itemsHTML = (order.items || []).map(item => `
+            let computedItemsTotal = 0;
+            let itemsHTML = (order.items || []).map(item => {
+                const itemTotal = window.getSafeItemTotal(item);
+                computedItemsTotal += itemTotal;
+                const q = parseInt(item.qty) || 1;
+
+                return `
                 <div class="py-4 border-b border-slate-700 flex justify-between text-lg">
                     <div class="flex-1 pr-4">
-                        <span class="font-bold bg-slate-700 text-white px-3 py-1 rounded mr-3">${item.qty || 1}x</span> ${item.name}
+                        <span class="font-bold bg-slate-700 text-white px-3 py-1 rounded mr-3">${q}x</span> ${item.name}
                         ${item.options ? `<p class="text-sm text-amber-400 mt-2 pl-12"><i class="fas fa-angle-right"></i> ${item.options}</p>` : ''}
+                        ${item.note ? `<p class="text-sm text-rose-300 mt-1 pl-12"><i class="fas fa-comment-dots"></i> หมายเหตุ: ${item.note}</p>` : ''}
                     </div>
-                    <span class="font-bold text-slate-300">฿${(item.price * (item.qty || 1))}</span>
+                    <span class="font-bold text-slate-300">฿${itemTotal}</span>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+
+            const discountVal = parseFloat(order.discount) || 0;
+            let finalTotal = parseFloat(order.total);
+            if (isNaN(finalTotal) || finalTotal <= 0) {
+                finalTotal = computedItemsTotal - discountVal;
+            }
 
             const content = document.getElementById('order-fullscreen-content');
             content.innerHTML = `
@@ -446,13 +611,13 @@
                     <div class="flex justify-between items-start mb-8">
                         <div>
                             <span class="px-3 py-1 bg-${color}-500/20 text-${color}-400 font-bold rounded text-sm uppercase mb-3 inline-block">${isDel ? 'Delivery Order' : 'Dine-In Order'}</span>
-                            <h1 class="text-5xl font-bold text-white tracking-wide">${isDel ? (order.customer || 'ลูกค้า') : `โต๊ะ ${order.table}`}</h1>
+                            <h1 class="text-5xl font-bold text-white tracking-wide">${isDel ? (order.customer || 'ลูกค้า') : `โต๊ะ ${order.table || 'Walk-in'}`}</h1>
                             <p class="text-slate-400 mt-3 text-lg">Order ID: ${order.id}</p>
                             ${isDel && order.address ? `<p class="text-slate-300 mt-2 text-lg"><i class="fas fa-map-marker-alt text-rose-400"></i> ${order.address}</p>` : ''}
                         </div>
                         <div class="text-right">
                             <p class="text-slate-400 text-lg">ยอดชำระสุทธิ</p>
-                            <p class="text-5xl font-bold text-emerald-400 mt-1">฿${order.total || 0}</p>
+                            <p class="text-5xl font-bold text-emerald-400 mt-1">฿${finalTotal}</p>
                         </div>
                     </div>
 
@@ -460,10 +625,10 @@
                         <h3 class="text-xl font-bold text-slate-300 mb-4 border-b border-slate-700 pb-4">รายการอาหาร</h3>
                         ${itemsHTML}
                         
-                        ${order.discount ? `
+                        ${discountVal > 0 ? `
                         <div class="py-4 flex justify-between text-lg text-rose-400 font-bold border-b border-slate-700">
                             <span>ส่วนลดคูปอง (${order.couponCode || 'N/A'})</span>
-                            <span>- ฿${order.discount}</span>
+                            <span>- ฿${discountVal}</span>
                         </div>` : ''}
                         ${order.deliveryFee ? `
                         <div class="py-4 flex justify-between text-lg text-slate-300 border-b border-slate-700">
@@ -474,7 +639,7 @@
 
                     <div class="mt-8 flex justify-end gap-4">
                         <button onclick="closeOrderFullscreen()" class="px-8 py-4 bg-slate-700 text-white rounded-xl text-xl font-bold hover:bg-slate-600 transition-colors">ปิดหน้าต่าง</button>
-                        <button onclick="window.updateOrderStatus('${order.id}'); closeOrderFullscreen();" class="px-8 py-4 bg-emerald-500 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-emerald-600 transition-colors"><i class="fas fa-check-circle mr-2"></i> ทำอาหารเสร็จสิ้น (ปิดออเดอร์)</button>
+                        <button onclick="window.updateOrderStatus('${order.id}'); closeOrderFullscreen();" class="px-8 py-4 bg-emerald-500 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-emerald-600 transition-colors"><i class="fas fa-check-circle mr-2"></i> ทำอาหารเสร็จสิ้น (ส่งไปรอคิดเงิน)</button>
                     </div>
                 </div>
             `;
@@ -497,26 +662,14 @@
             window.renderOrders();
         });
 
-        // ปิดออเดอร์และหักลบสต็อกสินค้า
         window.updateOrderStatus = async (orderId) => {
-            if(confirm('ยืนยันทำอาหารเสร็จและปิดออเดอร์?')) {
-                const orderToClose = activeOrders.find(o => o.id === orderId);
-                if (orderToClose && orderToClose.items) {
-                    for (const item of orderToClose.items) {
-                        const menu = adminMenus.find(m => m.name === item.name);
-                        if (menu && menu.stock !== null && menu.stock !== undefined && menu.stock > 0) {
-                            const newStock = Math.max(0, menu.stock - (item.qty || 1));
-                            await updateDoc(doc(db, "menu_items", menu.id), { stock: newStock });
-                        }
-                    }
-                }
-                await updateDoc(doc(db, "orders", orderId), { status: "เสร็จสิ้น" });
+            if(confirm('ยืนยันทำอาหารเสร็จเรียบร้อย?\n(ออเดอร์จะถูกซ่อนจากห้องครัว และส่งไปรอคิดเงินที่แคชเชียร์)')) {
+                await updateDoc(doc(db, "orders", orderId), { status: "รอชำระเงิน" });
             }
         };
 
         let optionGroups = [];
         
-        // 🟢 จัดการเมนู & ตัวเลือก & สต็อก
         window.openMenuPanel = (id = null) => {
             document.getElementById('menu-panel-overlay').classList.remove('hidden');
             document.getElementById('menu-panel').classList.remove('translate-x-full');
@@ -698,12 +851,12 @@
                 adminMenus.push({ id: docSnap.id, ...docSnap.data() });
             });
             window.renderAdminMenus();
+            window.renderPosCategories();
+            window.renderPosMenu();
         });
 
         window.deleteMenu = async (id) => { if(confirm('ลบเมนูถาวร?')) await deleteDoc(doc(db, "menu_items", id)); };
 
-
-        // 🟢 จัดการส่วนลด โปรโมชั่น และคูปอง
         window.openCouponPanel = (id = null) => {
             document.getElementById('coupon-panel-overlay').classList.remove('hidden');
             document.getElementById('coupon-panel').classList.remove('translate-x-full');
@@ -788,7 +941,7 @@
             if (id) {
                 await updateDoc(doc(db, "coupons", id), couponData);
             } else {
-                couponData.usedCount = 0; // ตั้งค่าเริ่มต้นโควต้าการใช้งาน
+                couponData.usedCount = 0; 
                 couponData.created_at = new Date();
                 await addDoc(collection(db, "coupons"), couponData);
             }
@@ -838,6 +991,522 @@
         });
 
         window.deleteCoupon = async (id) => { if(confirm('ต้องการลบคูปอง/โปรโมชั่นนี้ใช่หรือไม่?')) await deleteDoc(doc(db, "coupons", id)); };
+
+        let posCart = [];
+        let posCurrentCategory = 'all';
+        let posEditingOrderId = null; 
+        let posActiveItem = null; 
+        let posActiveQty = 1;
+
+        window.renderPosCategories = () => {
+            const container = document.getElementById('pos-category-filters');
+            if(!container) return;
+            const categories = [...new Set(adminMenus.map(m => m.category || 'ไม่มีหมวดหมู่'))];
+            
+            let html = `<button onclick="setPosCategory('all')" class="px-5 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-colors shadow-sm ${posCurrentCategory === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}">ทั้งหมด</button>`;
+            
+            categories.forEach(c => {
+                html += `<button onclick="setPosCategory('${c}')" class="px-5 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-colors shadow-sm ${posCurrentCategory === c ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}">${c}</button>`;
+            });
+            container.innerHTML = html;
+        };
+
+        window.setPosCategory = (cat) => {
+            posCurrentCategory = cat;
+            renderPosCategories();
+            renderPosMenu();
+        };
+
+        window.renderPosMenu = () => {
+            const container = document.getElementById('pos-menu-grid');
+            if(!container) return;
+            
+            let filtered = adminMenus;
+            if (posCurrentCategory !== 'all') {
+                filtered = adminMenus.filter(m => (m.category || 'ไม่มีหมวดหมู่') === posCurrentCategory);
+            }
+
+            container.innerHTML = filtered.map(m => {
+                const stockDisplay = (m.stock !== null && m.stock !== undefined) ? m.stock : '∞';
+                const isOutOfStock = m.stock === 0;
+                
+                return `
+                <div onclick="clickPosMenu('${m.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer relative ${isOutOfStock ? 'opacity-50 grayscale' : 'active:scale-95'} flex flex-col h-full">
+                    ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center"><span class="bg-rose-500 text-white px-3 py-1 font-bold rounded-lg text-sm">หมด</span></div>' : ''}
+                    <div class="h-32 w-full relative">
+                        <img src="${m.img}" class="w-full h-full object-cover">
+                        <div class="absolute bottom-2 right-2 bg-slate-900/80 text-white px-2 py-1 rounded text-[10px] font-bold"><i class="fas fa-box"></i> ${stockDisplay}</div>
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <h3 class="font-bold text-sm text-slate-800 leading-tight mb-2 line-clamp-2">${m.name}</h3>
+                        <span class="text-emerald-600 font-bold text-lg">฿${m.price}</span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        };
+
+        window.clickPosMenu = (menuId) => {
+            const m = adminMenus.find(x => x.id === menuId);
+            if(m.stock === 0) return alert('สินค้านี้หมดสต็อก');
+            
+            posActiveItem = JSON.parse(JSON.stringify(m));
+            posActiveQty = 1;
+
+            document.getElementById('pos-opt-title').innerText = posActiveItem.name;
+            document.getElementById('pos-opt-qty').innerText = posActiveQty;
+            document.getElementById('pos-opt-note').value = '';
+            
+            const body = document.getElementById('pos-opt-body');
+            body.innerHTML = '';
+
+            if (posActiveItem.options && posActiveItem.options.length > 0) {
+                posActiveItem.options.forEach((g, gIdx) => {
+                    const isSingle = g.type === 'single';
+                    const inputType = isSingle ? 'radio' : 'checkbox';
+                    
+                    let choicesHtml = g.choices.map((c, cIdx) => `
+                        <label class="flex justify-between items-center p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50 active:scale-95 transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="${inputType}" name="opt_${gIdx}" value="${c.name}" data-price="${c.price}" class="pos-opt-input w-5 h-5 text-emerald-600 rounded ${isSingle ? '' : 'rounded-md'}" onchange="updatePosOptTotal()">
+                                <span class="font-medium text-slate-700">${c.name}</span>
+                            </div>
+                            <span class="text-slate-500 font-bold">${c.price > 0 ? '+฿'+c.price : ''}</span>
+                        </label>
+                    `).join('');
+
+                    body.innerHTML += `
+                        <div class="mb-5">
+                            <h4 class="font-bold text-slate-800 mb-2">${g.title} ${isSingle ? '<span class="text-rose-500 text-xs">(เลือก 1 ข้อ)</span>' : '<span class="text-slate-400 text-xs">(เลือกได้หลายข้อ)</span>'}</h4>
+                            <div class="grid grid-cols-1 gap-2">${choicesHtml}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                body.innerHTML = '<p class="text-slate-500 text-center py-8">ไม่มีตัวเลือกเสริมสำหรับเมนูนี้</p>';
+            }
+
+            updatePosOptTotal();
+            document.getElementById('pos-option-modal').classList.remove('hidden');
+            document.getElementById('pos-option-modal').classList.add('flex');
+        };
+
+        window.closePosOptionModal = () => {
+            document.getElementById('pos-option-modal').classList.add('hidden');
+            document.getElementById('pos-option-modal').classList.remove('flex');
+            posActiveItem = null;
+        };
+
+        window.changePosOptQty = (delta) => {
+            if(posActiveQty + delta > 0) {
+                posActiveQty += delta;
+                document.getElementById('pos-opt-qty').innerText = posActiveQty;
+                updatePosOptTotal();
+            }
+        };
+
+        window.updatePosOptTotal = () => {
+            let totalOptionsPrice = 0;
+            document.querySelectorAll('.pos-opt-input:checked').forEach(el => {
+                totalOptionsPrice += parseFloat(el.getAttribute('data-price')) || 0;
+            });
+            const total = (posActiveItem.price + totalOptionsPrice) * posActiveQty;
+            document.getElementById('pos-opt-totalprice').innerText = `(฿${total})`;
+        };
+
+        window.confirmPosItem = () => {
+            let selectedOptionsStr = [];
+            let totalOptionsPrice = 0;
+            
+            const groups = posActiveItem.options || [];
+            for (let i = 0; i < groups.length; i++) {
+                const checked = document.querySelectorAll(`input[name="opt_${i}"]:checked`);
+                if (groups[i].type === 'single' && checked.length === 0) {
+                    return alert(`กรุณาเลือก: ${groups[i].title}`);
+                }
+                checked.forEach(el => {
+                    const price = parseFloat(el.getAttribute('data-price')) || 0;
+                    selectedOptionsStr.push(el.value);
+                    totalOptionsPrice += price;
+                });
+            }
+
+            const note = document.getElementById('pos-opt-note').value.trim();
+            const unitPrice = posActiveItem.price + totalOptionsPrice;
+
+            posCart.push({
+                menuId: posActiveItem.id,
+                name: posActiveItem.name,
+                price: unitPrice, 
+                qty: posActiveQty,
+                options: selectedOptionsStr.join(', '),
+                note: note,
+                totalItemPrice: unitPrice * posActiveQty
+            });
+
+            closePosOptionModal();
+            renderPosCart();
+        };
+
+        window.renderPosCart = () => {
+            const container = document.getElementById('pos-cart-items');
+            document.getElementById('pos-cart-count').innerText = `${posCart.length} รายการ`;
+
+            if(posCart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-400 py-10 text-sm">
+                        <i class="fas fa-utensils text-4xl mb-3 text-slate-300"></i><br>
+                        ยังไม่มีรายการสั่งอาหาร
+                    </div>`;
+                document.getElementById('pos-subtotal').innerText = '฿0.00';
+                document.getElementById('pos-discount').innerText = '- ฿0.00';
+                document.getElementById('pos-discount-label').innerText = 'ส่วนลด (Discount)';
+                document.getElementById('pos-total').innerText = '฿0.00';
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = posCart.map((item, index) => {
+                const itemTotal = window.getSafeItemTotal(item);
+                item.totalItemPrice = itemTotal;
+                subtotal += itemTotal;
+
+                return `
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-2">
+                            <h4 class="font-bold text-slate-800 leading-tight">${item.name}</h4>
+                            ${item.options ? `<p class="text-xs text-amber-500 mt-1 line-clamp-1"><i class="fas fa-plus text-[10px]"></i> ${item.options}</p>` : ''}
+                            ${item.note ? `<p class="text-xs text-rose-400 mt-1 line-clamp-1"><i class="fas fa-comment-dots text-[10px]"></i> ${item.note}</p>` : ''}
+                        </div>
+                        <span class="font-bold text-emerald-600">฿${itemTotal}</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-100 pt-2 mt-1">
+                        <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-1">
+                            <button onclick="updatePosItemQty(${index}, -1)" class="w-8 h-8 flex justify-center items-center bg-white rounded shadow-sm text-rose-500 font-bold active:scale-90">-</button>
+                            <span class="font-bold text-slate-800 w-4 text-center">${item.qty}</span>
+                            <button onclick="updatePosItemQty(${index}, 1)" class="w-8 h-8 flex justify-center items-center bg-white rounded shadow-sm text-emerald-500 font-bold active:scale-90">+</button>
+                        </div>
+                        <button onclick="removePosItem(${index})" class="text-rose-400 hover:text-rose-600 p-2"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // คำนวณหักส่วนลดที่ติดมากับบิล (ถ้ามี)
+            const finalTotal = Math.max(0, subtotal - currentOrderDiscount);
+
+            document.getElementById('pos-subtotal').innerText = `฿${subtotal}`;
+            document.getElementById('pos-discount').innerText = `- ฿${currentOrderDiscount}`;
+            if (currentOrderCouponCode) {
+                document.getElementById('pos-discount-label').innerText = `ส่วนลด (${currentOrderCouponCode})`;
+            } else {
+                document.getElementById('pos-discount-label').innerText = 'ส่วนลด (Discount)';
+            }
+            document.getElementById('pos-total').innerText = `฿${finalTotal}`;
+        };
+
+        window.updatePosItemQty = (index, delta) => {
+            if(posCart[index].qty + delta > 0) {
+                posCart[index].qty += delta;
+                posCart[index].totalItemPrice = (parseFloat(posCart[index].price) || 0) * posCart[index].qty;
+                renderPosCart();
+            }
+        };
+
+        window.removePosItem = (index) => {
+            posCart.splice(index, 1);
+            renderPosCart();
+        };
+
+        window.clearPosCart = () => {
+            if(posCart.length === 0) return;
+            if(confirm('ต้องการล้างตะกร้าทั้งหมดหรือไม่?')) {
+                posCart = [];
+                posEditingOrderId = null; 
+                currentOrderDiscount = 0;
+                currentOrderCouponCode = '';
+                document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
+                renderPosCart();
+            }
+        };
+
+        window.saveOrderToTable = async (event) => {
+            if(posCart.length === 0) return alert('ตะกร้าว่างเปล่า');
+            
+            const tableName = prompt('ระบุหมายเลขโต๊ะ หรือ ชื่อลูกค้า สำหรับออเดอร์นี้:');
+            if(!tableName) return;
+
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> รอสักครู่...';
+            btn.disabled = true;
+
+            try {
+                let subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
+                let finalTotal = Math.max(0, subtotal - currentOrderDiscount);
+
+                if (posEditingOrderId) {
+                    await updateDoc(doc(db, "orders", posEditingOrderId), {
+                        table: tableName,
+                        items: posCart,
+                        total: finalTotal,
+                        discount: currentOrderDiscount,
+                        couponCode: currentOrderCouponCode,
+                        updated_at: new Date()
+                    });
+                } else {
+                    await addDoc(collection(db, "orders"), {
+                        customer: tableName,
+                        table: tableName,
+                        type: 'dine-in',
+                        status: 'กำลังทำ', 
+                        items: posCart,
+                        total: finalTotal,
+                        discount: currentOrderDiscount,
+                        couponCode: currentOrderCouponCode,
+                        timestamp: new Date()
+                    });
+                }
+                
+                alert('บันทึกออเดอร์เข้าโต๊ะเรียบร้อย!');
+                posCart = [];
+                posEditingOrderId = null;
+                currentOrderDiscount = 0;
+                currentOrderCouponCode = '';
+                document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
+                renderPosCart();
+            } catch (error) {
+                console.error(error);
+                alert('เกิดข้อผิดพลาดในการบันทึก');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+
+        window.openPendingBillsModal = () => {
+            const list = document.getElementById('pos-pending-bills-list');
+            const pendingOrders = activeOrders;
+            
+            if (pendingOrders.length === 0) {
+                list.innerHTML = '<div class="text-center py-10 text-slate-400">ไม่มีบิลรอชำระในขณะนี้</div>';
+            } else {
+                list.innerHTML = pendingOrders.map(o => {
+                    const itemCount = (o.items || []).reduce((sum, i) => sum + parseInt(i.qty || 1), 0);
+                    let orderTotal = parseFloat(o.total);
+                    if (isNaN(orderTotal) || orderTotal <= 0) {
+                        const sub = (o.items || []).reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
+                        const disc = parseFloat(o.discount) || 0;
+                        orderTotal = sub - disc;
+                    }
+
+                    const statusBadge = o.status === 'รอชำระเงิน' 
+                        ? `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold shadow-sm">อาหารเสร็จแล้ว</span>`
+                        : `<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold shadow-sm">กำลังทำอาหาร</span>`;
+
+                    return `
+                    <div class="flex justify-between items-center p-4 border border-slate-200 rounded-xl mb-3 hover:bg-slate-50 transition-colors">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-slate-800 text-lg">โต๊ะ: ${o.table || o.customer || 'ไม่ระบุ'}</h4>
+                                ${statusBadge}
+                            </div>
+                            <p class="text-sm text-slate-500">จำนวน ${itemCount} รายการ | ยอดสุทธิ <span class="font-bold text-emerald-600">฿${orderTotal}</span> ${o.discount ? `<span class="text-rose-500 text-xs ml-2">(ลด ฿${o.discount})</span>` : ''}</p>
+                        </div>
+                        <button onclick="loadPendingBill('${o.id}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm">
+                            <i class="fas fa-hand-pointer mr-1"></i> ดึงบิลนี้
+                        </button>
+                    </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('pos-pending-bills-modal').classList.remove('hidden');
+            document.getElementById('pos-pending-bills-modal').classList.add('flex');
+        };
+
+        window.closePendingBillsModal = () => {
+            document.getElementById('pos-pending-bills-modal').classList.add('hidden');
+            document.getElementById('pos-pending-bills-modal').classList.remove('flex');
+        };
+
+        window.loadPendingBill = (orderId) => {
+            const order = activeOrders.find(o => o.id === orderId);
+            if(!order) return alert('ไม่พบข้อมูลออเดอร์');
+
+            if(posCart.length > 0) {
+                if(!confirm('มีรายการที่ยังไม่บันทึกอยู่ในตะกร้า หากดึงบิลโต๊ะอื่น รายการปัจจุบันจะหายไป ยืนยันหรือไม่?')) return;
+            }
+
+            posCart = JSON.parse(JSON.stringify(order.items || [])).map(item => ({
+                ...item,
+                totalItemPrice: window.getSafeItemTotal(item)
+            }));
+            
+            // ดึงค่าส่วนลดและรหัสคูปองจากบิลที่เลือกมาแสดงผลในแคชเชียร์
+            currentOrderDiscount = parseFloat(order.discount) || 0;
+            currentOrderCouponCode = order.couponCode || '';
+            posEditingOrderId = order.id;
+
+            document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-shopping-basket mr-2"></i>บิลโต๊ะ: <span class="text-amber-600">${order.table || order.customer}</span>`;
+            
+            renderPosCart();
+            closePendingBillsModal();
+        };
+
+        let posPaymentMethod = 'cash';
+        let posTotalAmount = 0;
+
+        window.openPosCheckout = () => {
+            if(posCart.length === 0) return alert('ตะกร้าว่างเปล่า');
+            
+            const subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
+            posTotalAmount = Math.max(0, subtotal - currentOrderDiscount);
+            
+            document.getElementById('pos-checkout-total').innerText = `฿${posTotalAmount}`;
+            document.getElementById('pos-cash-received').value = '';
+            document.getElementById('pos-cash-change').innerText = '฿0';
+            
+            let summaryHtml = posCart.map(item => `
+                <div class="flex justify-between py-2 border-b border-slate-700/50 text-sm">
+                    <div class="truncate pr-2 text-slate-300"><span class="text-white font-bold">${item.qty}x</span> ${item.name}</div>
+                    <span class="text-emerald-400">฿${window.getSafeItemTotal(item)}</span>
+                </div>
+            `).join('');
+
+            if (currentOrderDiscount > 0) {
+                summaryHtml += `
+                <div class="flex justify-between py-2 border-b border-slate-700/50 text-sm text-rose-400 font-bold">
+                    <span>ส่วนลด (${currentOrderCouponCode || 'คูปอง'})</span>
+                    <span>- ฿${currentOrderDiscount}</span>
+                </div>`;
+            }
+
+            document.getElementById('pos-checkout-items-summary').innerHTML = summaryHtml;
+
+            selectPaymentMethod('cash');
+            document.getElementById('pos-checkout-modal').classList.remove('hidden');
+            document.getElementById('pos-checkout-modal').classList.add('flex');
+        };
+
+        window.closePosCheckout = () => {
+            document.getElementById('pos-checkout-modal').classList.add('hidden');
+            document.getElementById('pos-checkout-modal').classList.remove('flex');
+        };
+
+        window.selectPaymentMethod = (method) => {
+            posPaymentMethod = method;
+            ['cash', 'qr', 'card'].forEach(m => {
+                const btn = document.getElementById(`pay-btn-${m}`);
+                btn.className = "py-4 border-2 bg-white rounded-xl font-bold flex flex-col items-center gap-2 transition-all border-slate-200 text-slate-600";
+            });
+            
+            const activeBtn = document.getElementById(`pay-btn-${method}`);
+            if(method === 'cash') {
+                activeBtn.className = "py-4 border-2 border-emerald-500 bg-emerald-50 rounded-xl font-bold text-emerald-700 flex flex-col items-center gap-2 transition-all ring-4 ring-emerald-500/20";
+                document.getElementById('pos-cash-calculator').classList.remove('hidden');
+            }
+            if(method === 'qr') {
+                activeBtn.className = "py-4 border-2 border-blue-500 bg-blue-50 rounded-xl font-bold text-blue-700 flex flex-col items-center gap-2 transition-all ring-4 ring-blue-500/20";
+                document.getElementById('pos-cash-calculator').classList.add('hidden');
+            }
+            if(method === 'card') {
+                activeBtn.className = "py-4 border-2 border-purple-500 bg-purple-50 rounded-xl font-bold text-purple-700 flex flex-col items-center gap-2 transition-all ring-4 ring-purple-500/20";
+                document.getElementById('pos-cash-calculator').classList.add('hidden');
+            }
+        };
+
+        window.addCashAmount = (amount) => {
+            const input = document.getElementById('pos-cash-received');
+            let current = parseFloat(input.value) || 0;
+            input.value = current + amount;
+            calculatePosChange();
+        };
+
+        window.setExactCash = () => {
+            document.getElementById('pos-cash-received').value = posTotalAmount;
+            calculatePosChange();
+        };
+
+        window.calculatePosChange = () => {
+            const received = parseFloat(document.getElementById('pos-cash-received').value) || 0;
+            const change = received - posTotalAmount;
+            const changeEl = document.getElementById('pos-cash-change');
+            if(change > 0) {
+                changeEl.innerText = `฿${change}`;
+                changeEl.className = "font-bold text-emerald-600 text-3xl";
+            } else if (change === 0 && received > 0) {
+                changeEl.innerText = `พอดี`;
+                changeEl.className = "font-bold text-emerald-600 text-3xl";
+            } else {
+                changeEl.innerText = `฿0`;
+                changeEl.className = "font-bold text-amber-600 text-3xl";
+            }
+        };
+
+        window.submitPosCheckout = async () => {
+            if(posPaymentMethod === 'cash') {
+                const received = parseFloat(document.getElementById('pos-cash-received').value) || 0;
+                if(received < posTotalAmount) return alert('จำนวนเงินที่รับมาน้อยกว่ายอดชำระ');
+            }
+
+            const btn = document.getElementById('btn-submit-pos');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึกการชำระเงิน...';
+            btn.disabled = true;
+
+            try {
+                for (const item of posCart) {
+                    const menu = adminMenus.find(m => m.name === item.name);
+                    if (menu && menu.stock !== null && menu.stock !== undefined && menu.stock > 0) {
+                        const newStock = Math.max(0, menu.stock - (item.qty || 1));
+                        await updateDoc(doc(db, "menu_items", menu.id), { stock: newStock });
+                    }
+                }
+
+                if (posEditingOrderId) {
+                    await updateDoc(doc(db, "orders", posEditingOrderId), {
+                        status: 'เสร็จสิ้น',
+                        items: posCart,
+                        total: posTotalAmount,
+                        discount: currentOrderDiscount,
+                        couponCode: currentOrderCouponCode,
+                        paymentMethod: posPaymentMethod,
+                        paid_at: new Date()
+                    });
+                } else {
+                    const newOrder = {
+                        customer: 'Walk-in (POS)',
+                        table: 'Walk-in',
+                        type: 'dine-in',
+                        status: 'เสร็จสิ้น', 
+                        items: posCart,
+                        total: posTotalAmount,
+                        discount: currentOrderDiscount,
+                        couponCode: currentOrderCouponCode,
+                        paymentMethod: posPaymentMethod,
+                        timestamp: new Date()
+                    };
+                    await addDoc(collection(db, "orders"), newOrder);
+                }
+                
+                alert('รับชำระเงินและบันทึกออเดอร์เรียบร้อย!');
+                posCart = [];
+                posEditingOrderId = null;
+                currentOrderDiscount = 0;
+                currentOrderCouponCode = '';
+                document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
+                renderPosCart();
+                closePosCheckout();
+                
+            } catch (error) {
+                console.error(error);
+                alert('เกิดข้อผิดพลาดในการบันทึกการชำระเงิน');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> ยืนยันชำระเงิน & พิมพ์ใบเสร็จ';
+                btn.disabled = false;
+            }
+        };
 
     </script>
 </body>
