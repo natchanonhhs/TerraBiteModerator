@@ -13,7 +13,6 @@
         body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         
-        /* สไตล์สำหรับการพิมพ์ใบเสร็จ (Thermal Printer 80mm) */
         @media print {
             body * { visibility: hidden; }
             #receipt-printable-area, #receipt-printable-area * { visibility: visible; }
@@ -21,7 +20,7 @@
                 position: absolute; 
                 left: 0; 
                 top: 0; 
-                width: 80mm; /* ขนาดกระดาษสลิปมาตรฐาน */
+                width: 80mm;
                 margin: 0; 
                 padding: 0; 
                 box-shadow: none; 
@@ -51,10 +50,10 @@
                 <i class="fas fa-bell w-5 text-center"></i> ออเดอร์กำลังทำ
             </button>
             <button onclick="switchView('menu')" id="nav-menu" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
-                <i class="fas fa-utensils w-5 text-center"></i> จัดการเมนู & Option
+                <i class="fas fa-utensils w-5 text-center"></i> จัดการเมนูและตัวเลือก
             </button>
             <button onclick="switchView('coupons')" id="nav-coupons" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
-                <i class="fas fa-cog w-5 text-center"></i> ตั้งค่าร้านค้า & คูปอง
+                <i class="fas fa-cog w-5 text-center"></i> ตั้งค่าร้านค้าและคูปอง
             </button>
             <button onclick="switchView('history')" id="nav-history" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
                 <i class="fas fa-history w-5 text-center"></i> ประวัติรายการย้อนหลัง
@@ -75,6 +74,10 @@
             </h2>
             
             <div class="flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200 shrink-0">
+                <button onclick="window.location.reload()" class="text-slate-400 hover:text-emerald-500 transition-colors" title="รีเฟรชระบบ">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="w-px h-4 bg-slate-300"></div>
                 <span class="text-xs font-bold text-slate-600 hidden sm:inline">สถานะเดลิเวอรี่:</span>
                 <button id="delivery-toggle-btn" onclick="toggleDeliveryStatus()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                     กำลังตรวจสอบ...
@@ -82,9 +85,6 @@
             </div>
         </header>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: แคชเชียร์ (POS) -->
-        <!-- ========================================== -->
         <div id="view-pos" class="hidden flex-1 overflow-hidden w-full bg-slate-100 flex-row h-full">
             <div class="flex-1 flex flex-col overflow-hidden relative min-w-0">
                 <div id="pos-category-filters" class="bg-white px-4 py-3 flex gap-3 overflow-x-auto scrollbar-hide border-b border-slate-200 shrink-0 shadow-sm"></div>
@@ -111,7 +111,7 @@
                     </div>
                 </div>
 
-                <div class="p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0 overflow-y-auto max-h-[50dvh]">
+                <div class="p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0">
                     <div class="flex justify-between text-sm mb-2 text-slate-600">
                         <span>รวมย่อย (Subtotal)</span>
                         <span id="pos-subtotal" class="font-bold">฿0.00</span>
@@ -140,10 +140,7 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: ออเดอร์กำลังทำ (รายการ) -->
-        <!-- ========================================== -->
-        <div id="view-orders" class="flex flex-col flex-1 overflow-hidden w-full h-full">
+        <div id="view-orders" class="hidden flex-col flex-1 overflow-hidden w-full h-full">
             <div class="px-6 py-4 bg-white border-b border-slate-200 flex gap-2 overflow-x-auto scrollbar-hide shrink-0">
                 <button onclick="window.setOrderFilter('all')" id="btn-all" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors shrink-0">
                     ทั้งหมด (<span id="count-all">0</span>)
@@ -161,9 +158,6 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: จัดการเมนู -->
-        <!-- ========================================== -->
         <div id="view-menu" class="hidden flex-col flex-1 overflow-hidden w-full h-full">
             <div class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
                 <h2 class="text-lg font-bold text-slate-800">จัดการคลังเมนูอาหาร</h2>
@@ -177,19 +171,15 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: ตั้งค่าร้านค้า & คูปองส่วนลด -->
-        <!-- ========================================== -->
         <div id="view-coupons" class="hidden flex-col flex-1 overflow-hidden w-full h-full">
             <div class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
-                <h2 class="text-lg font-bold text-slate-800">ตั้งค่าใบเสร็จ & โปรโมชั่น</h2>
-                <button onclick="saveReceiptSettings()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
+                <h2 class="text-lg font-bold text-slate-800">ตั้งค่าใบเสร็จและโปรโมชั่น</h2>
+                <button onclick="saveReceiptSettings(event)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2">
                     <i class="fas fa-save"></i> บันทึกการตั้งค่า
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto p-6 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <!-- ส่วนการตั้งค่าใบเสร็จ -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-max">
                     <h3 class="font-bold text-lg text-slate-800 mb-4 border-b border-slate-100 pb-3"><i class="fas fa-receipt text-emerald-500 mr-2"></i> ข้อมูลร้านค้า (สำหรับหัวบิลใบเสร็จ)</h3>
                     
@@ -218,29 +208,24 @@
                         </div>
                         <div>
                             <label class="block text-slate-600 text-sm font-bold mb-1">ข้อความท้ายบิล</label>
-                            <input type="text" id="setting-footer-msg" placeholder="เช่น ขอบคุณที่ใช้บริการโอกาสหน้าเชิญใหม่" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm">
+                            <input type="text" id="setting-footer-msg" placeholder="เช่น ขอบคุณที่ใช้บริการ" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm">
                         </div>
                     </div>
                 </div>
 
-                <!-- ส่วนจัดการคูปอง -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
-                        <h3 class="font-bold text-lg text-slate-800"><i class="fas fa-ticket-alt text-indigo-500 mr-2"></i> คูปอง & โปรโมชั่น</h3>
+                        <h3 class="font-bold text-lg text-slate-800"><i class="fas fa-ticket-alt text-indigo-500 mr-2"></i> คูปองและโปรโมชั่น</h3>
                         <button onclick="openCouponPanel()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                            + สร้างคูปอง
+                            <i class="fas fa-plus"></i> สร้างคูปอง
                         </button>
                     </div>
                     <div class="flex-1 overflow-y-auto p-4 space-y-4" id="coupon-list-container">
-                        <!-- รายการคูปอง -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: ประวัติรายการย้อนหลัง (Order History) -->
-        <!-- ========================================== -->
         <div id="view-history" class="hidden flex-col flex-1 overflow-hidden w-full h-full bg-slate-50">
             <div class="bg-white h-auto sm:h-16 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-3 sm:py-0 shrink-0 shadow-sm gap-3">
                 <h2 class="text-lg font-bold text-slate-800"><i class="fas fa-history text-emerald-600 mr-2"></i> ประวัติรายการย้อนหลัง</h2>
@@ -262,28 +247,26 @@
             
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-50 sticky top-0 shadow-sm z-10 border-b border-slate-200">
-                            <tr>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">วันที่-เวลา</th>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">เลขออเดอร์ (Order ID)</th>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">ประเภท</th>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">ชำระผ่าน</th>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase text-right">ยอดสุทธิ (฿)</th>
-                                <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase text-center w-24">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-list-container" class="bg-white divide-y divide-slate-100">
-                            <!-- ข้อมูลประวัติ -->
-                        </tbody>
-                    </table>
+                    <div class="flex-1 overflow-y-auto min-h-0">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 sticky top-0 shadow-sm z-10 border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">วันที่-เวลา</th>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">เลขออเดอร์ (Order ID)</th>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">ประเภท</th>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase">ชำระผ่าน</th>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase text-right">ยอดสุทธิ (฿)</th>
+                                    <th class="py-3 px-5 text-xs font-bold text-slate-500 uppercase text-center w-24">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-list-container" class="bg-white divide-y divide-slate-100">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🟢 VIEW: สถิติร้านค้า (Analytics) -->
-        <!-- ========================================== -->
         <div id="view-analytics" class="hidden flex-col flex-1 overflow-hidden w-full h-full bg-slate-50">
             <div class="bg-white h-auto sm:h-16 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-3 sm:py-0 shrink-0 shadow-sm gap-3">
                 <h2 class="text-lg font-bold text-slate-800"><i class="fas fa-chart-line text-emerald-600 mr-2"></i> สถิติและสรุปผล (Analytics)</h2>
@@ -306,7 +289,6 @@
             </div>
             
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 min-h-0">
-                
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-50 rounded-full flex justify-center items-center"><i class="fas fa-coins text-2xl text-emerald-200"></i></div>
@@ -325,12 +307,11 @@
                     </div>
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full flex justify-center items-center"><i class="fas fa-fire text-2xl text-rose-200"></i></div>
-                        <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider z-10">เมนูฮีโร่ (ขายดีสุด)</p>
+                        <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider z-10">เมนูขายดีสุด</p>
                         <h3 class="text-lg sm:text-xl font-bold text-rose-500 z-10 truncate" id="stat-top-item">-</h3>
                     </div>
                 </div>
 
-                <!-- 🟢 แถวใหม่: สรุปช่องทางการชำระเงิน -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -364,7 +345,7 @@
                         <div class="p-5 border-b border-slate-100 bg-slate-50 shrink-0">
                             <h3 class="font-bold text-slate-800"><i class="fas fa-trophy text-amber-500 mr-2"></i>รายงานจัดอันดับสินค้าขายดี</h3>
                         </div>
-                        <div class="flex-1 overflow-y-auto">
+                        <div class="flex-1 overflow-y-auto min-h-0">
                             <table class="w-full text-left border-collapse">
                                 <thead class="bg-white sticky top-0 shadow-sm z-10 border-b border-slate-200">
                                     <tr>
@@ -380,9 +361,9 @@
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[450px]">
                         <div class="p-5 border-b border-slate-100 bg-slate-50 shrink-0">
-                            <h3 class="font-bold text-slate-800"><i class="fas fa-chart-pie text-sky-500 mr-2"></i>สถิติตัวเลือกเสริม (Option & ท็อปปิ้ง)</h3>
+                            <h3 class="font-bold text-slate-800"><i class="fas fa-chart-pie text-sky-500 mr-2"></i>สถิติตัวเลือกเสริม (Option)</h3>
                         </div>
-                        <div class="flex-1 overflow-y-auto">
+                        <div class="flex-1 overflow-y-auto min-h-0">
                             <table class="w-full text-left border-collapse">
                                 <thead class="bg-white sticky top-0 shadow-sm z-10 border-b border-slate-200">
                                     <tr>
@@ -400,10 +381,6 @@
         </div>
 
     </main>
-
-    <!-- ========================================== -->
-    <!-- 🟢 MODALS & PANELS -->
-    <!-- ========================================== -->
 
     <!-- Modal เลือก Option สำหรับ POS -->
     <div id="pos-option-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[105] hidden justify-center items-center p-4">
@@ -432,20 +409,20 @@
         </div>
     </div>
 
-    <!-- Modal บิลรอชำระ (ดึงบิล / รวมบิล) -->
+    <!-- Modal บิลรอชำระ -->
     <div id="pos-pending-bills-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[115] hidden justify-center items-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[95dvh] overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[95dvh] overflow-hidden transform scale-95 transition-transform" id="pos-pending-bills-box">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-list text-amber-500 mr-2"></i>บิลรอชำระ (โต๊ะที่กำลังทาน/รอทำอาหาร)</h3>
+                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-list text-amber-500 mr-2"></i>บิลรอชำระ</h3>
                 <button onclick="closePendingBillsModal()" class="text-slate-400 hover:text-rose-500 text-3xl leading-none">&times;</button>
             </div>
             <div class="flex-1 overflow-y-auto p-5 min-h-0 bg-slate-50" id="pos-pending-bills-list"></div>
         </div>
     </div>
 
-    <!-- Modal ชำระเงิน (อัปเกรดปุ่มเงินสด) -->
+    <!-- Modal ชำระเงิน -->
     <div id="pos-checkout-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[110] hidden justify-center items-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col md:flex-row overflow-hidden max-h-[95dvh]">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col md:flex-row overflow-hidden max-h-[95dvh] transform scale-95 transition-transform" id="pos-checkout-box">
             <div class="w-full md:w-1/3 bg-slate-800 text-white p-6 flex flex-col min-h-0">
                 <h3 class="text-xl font-bold mb-4 text-emerald-400 border-b border-slate-700 pb-3 shrink-0">ยอดที่ต้องชำระ</h3>
                 <div class="text-5xl font-bold mb-6 text-center py-4 bg-slate-900 rounded-xl shadow-inner text-emerald-300 shrink-0" id="pos-checkout-total">฿0</div>
@@ -468,10 +445,8 @@
                     </button>
                 </div>
 
-                <!-- เครื่องคิดเลขเงินสด -->
                 <div id="pos-cash-calculator" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 flex-1 shrink-0">
                     <label class="block text-sm font-bold text-slate-600 mb-2">ปุ่มลัดรับเงินสด (บาท)</label>
-                    <!-- 🟢 อัปเกรดปุ่มเงินสดตามที่ขอ -->
                     <div class="grid grid-cols-3 md:grid-cols-4 gap-2 mb-4">
                         <button onclick="addCashAmount(1)" class="py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-600 text-sm shadow-sm">+1</button>
                         <button onclick="addCashAmount(5)" class="py-2 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-slate-600 text-sm shadow-sm">+5</button>
@@ -499,14 +474,14 @@
                         ยืนยัน (ไม่พิมพ์บิล)
                     </button>
                     <button onclick="submitPosCheckout(true)" id="btn-submit-pos" class="w-2/3 bg-slate-800 text-white p-4 rounded-xl font-bold text-lg shadow-lg hover:bg-slate-900 active:scale-95 transition-transform flex justify-center items-center gap-2">
-                        <i class="fas fa-print"></i> ยืนยัน & พิมพ์ใบเสร็จ
+                        <i class="fas fa-print"></i> ยืนยัน และพิมพ์ใบเสร็จ
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal ดูออเดอร์เต็มจอ (Orders View) -->
+    <!-- Modal ดูออเดอร์เต็มจอ -->
     <div id="order-fullscreen-modal" class="fixed inset-0 bg-slate-900 text-white z-[100] hidden flex-col pb-8 overflow-hidden max-h-[100dvh]">
         <div class="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800 shrink-0">
             <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-receipt text-emerald-400"></i> รายละเอียดออเดอร์</h2>
@@ -627,7 +602,7 @@
                     <label class="block text-slate-600 text-sm font-bold">เลือกเมนูที่สามารถใช้คูปองนี้ได้</label>
                     <button onclick="toggleAllCoupons(true)" class="text-xs text-emerald-600 hover:underline">เลือกทั้งหมด</button>
                 </div>
-                <div id="coupon-applicable-items" class="space-y-2 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-lg bg-slate-50"></div>
+                <div id="coupon-applicable-items" class="space-y-2 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-lg bg-slate-50 min-h-0"></div>
             </div>
         </div>
 
@@ -638,12 +613,9 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
     <!-- 🟢 MODAL: พิมพ์ใบเสร็จรับเงิน (Thermal Print) -->
-    <!-- ========================================== -->
     <div id="receipt-modal-bg" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] hidden justify-center items-center p-4">
         <div class="bg-white shadow-2xl flex flex-col max-h-[95dvh] overflow-hidden rounded-none sm:rounded-xl">
-            <!-- ซ่อนปุ่มต่างๆ เวลากดพิมพ์ -->
             <div id="receipt-modal-buttons" class="p-4 bg-slate-100 flex justify-between items-center border-b border-slate-200 shrink-0 no-print">
                 <h3 class="font-bold text-slate-700">ตัวอย่างใบเสร็จรับเงิน</h3>
                 <div class="flex gap-2">
@@ -653,9 +625,7 @@
             </div>
             
             <div class="flex-1 overflow-y-auto p-0 min-h-0 bg-gray-200 flex justify-center no-print">
-                <!-- พื้นที่บิลที่จำลองกระดาษ 80mm -->
                 <div id="receipt-printable-area" class="bg-white p-4 w-[80mm] min-h-[100mm] shadow-md my-4 sm:my-8 text-black" style="font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.4;">
-                    <!-- ส่วนหัวบิล -->
                     <div class="text-center mb-4">
                         <img id="rcpt-logo" src="" class="mx-auto w-16 h-16 object-contain mb-2 hidden grayscale">
                         <h2 id="rcpt-shop-name" class="font-bold text-lg leading-none mb-1">ร้านค้า</h2>
@@ -701,9 +671,42 @@
         </div>
     </div>
 
+    <!-- 🟢 Custom Alerts & Prompts Modals (แทนที่หน้าต่างของเบราว์เซอร์) -->
+    <div id="custom-alert" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-alert-box">
+            <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fas fa-info-circle"></i></div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">แจ้งเตือน</h3>
+            <p id="custom-alert-msg" class="text-sm text-slate-600 mb-6"></p>
+            <button onclick="closeCustomAlert()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors">ตกลง</button>
+        </div>
+    </div>
+
+    <div id="custom-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-confirm-box">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fas fa-question-circle"></i></div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">ยืนยันการทำรายการ</h3>
+            <p id="custom-confirm-msg" class="text-sm text-slate-600 mb-6"></p>
+            <div class="flex gap-3">
+                <button onclick="closeCustomConfirm()" class="w-1/2 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                <button id="custom-confirm-btn" class="w-1/2 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-prompt" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-prompt-box">
+            <h3 class="text-lg font-bold text-slate-800 mb-2" id="custom-prompt-title">ระบุข้อมูล</h3>
+            <p id="custom-prompt-msg" class="text-sm text-slate-600 mb-4"></p>
+            <input type="text" id="custom-prompt-input" class="w-full p-3 border border-slate-300 rounded-xl mb-6 outline-none focus:border-emerald-500 text-center text-lg font-bold">
+            <div class="flex gap-3">
+                <button onclick="closeCustomPrompt()" class="w-1/2 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                <button id="custom-prompt-btn" class="w-1/2 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors">ตกลง</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ========================================== -->
-    <!-- SCRIPT (รวมระบบทั้งหมด) -->
+    <!-- SCRIPT -->
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -727,6 +730,74 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // 🟢 ระบบ Custom Alert / Confirm / Prompt
+        window.showCustomAlert = (msg) => {
+            document.getElementById('custom-alert-msg').innerText = msg;
+            const modal = document.getElementById('custom-alert');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('custom-alert-box').classList.remove('scale-95'), 10);
+        };
+        window.closeCustomAlert = () => {
+            document.getElementById('custom-alert-box').classList.add('scale-95');
+            setTimeout(() => {
+                const modal = document.getElementById('custom-alert');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        let confirmCallback = null;
+        window.showCustomConfirm = (msg, callback) => {
+            document.getElementById('custom-confirm-msg').innerText = msg;
+            confirmCallback = callback;
+            const modal = document.getElementById('custom-confirm');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('custom-confirm-box').classList.remove('scale-95'), 10);
+        };
+        window.closeCustomConfirm = () => {
+            document.getElementById('custom-confirm-box').classList.add('scale-95');
+            setTimeout(() => {
+                const modal = document.getElementById('custom-confirm');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                confirmCallback = null;
+            }, 200);
+        };
+        document.getElementById('custom-confirm-btn').addEventListener('click', () => {
+            if(confirmCallback) confirmCallback();
+            window.closeCustomConfirm();
+        });
+
+        let promptCallback = null;
+        window.showCustomPrompt = (msg, defaultVal, callback) => {
+            document.getElementById('custom-prompt-msg').innerText = msg;
+            document.getElementById('custom-prompt-input').value = defaultVal || '';
+            promptCallback = callback;
+            const modal = document.getElementById('custom-prompt');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('custom-prompt-box').classList.remove('scale-95');
+                document.getElementById('custom-prompt-input').focus();
+            }, 10);
+        };
+        window.closeCustomPrompt = () => {
+            document.getElementById('custom-prompt-box').classList.add('scale-95');
+            setTimeout(() => {
+                const modal = document.getElementById('custom-prompt');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                promptCallback = null;
+            }, 200);
+        };
+        document.getElementById('custom-prompt-btn').addEventListener('click', () => {
+            const val = document.getElementById('custom-prompt-input').value;
+            if(promptCallback) promptCallback(val);
+            window.closeCustomPrompt();
+        });
+
         let isDeliveryOpen = true;
         let adminMenus = []; 
         let adminCoupons = []; 
@@ -734,7 +805,7 @@
         
         let activeOrders = []; 
         let allOrdersForAnalytics = []; 
-        let receiptSettings = {}; // 🟢 เก็บการตั้งค่าใบเสร็จ
+        let receiptSettings = {}; 
 
         let currentOrderFilter = 'all';
         let currentOrderDiscount = 0; 
@@ -761,7 +832,7 @@
                 updateDeliveryButtonUI(isDeliveryOpen);
             } catch (e) {
                 console.error("Error updating status:", e);
-                alert("ไม่สามารถเปลี่ยนสถานะได้");
+                window.showCustomAlert("ไม่สามารถเปลี่ยนสถานะได้");
             }
         };
 
@@ -777,7 +848,6 @@
         }
 
         async function loadShopSettings() {
-            // โหลดสถานะเดลิเวอรี่
             const docRefShop = doc(db, "settings", "shop");
             const docSnapShop = await getDoc(docRefShop);
             if (docSnapShop.exists()) {
@@ -788,7 +858,6 @@
             }
             updateDeliveryButtonUI(isDeliveryOpen);
 
-            // 🟢 โหลดการตั้งค่าใบเสร็จ
             const docRefReceipt = doc(db, "settings", "receipt");
             const docSnapReceipt = await getDoc(docRefReceipt);
             if (docSnapReceipt.exists()) {
@@ -803,7 +872,6 @@
         }
         loadShopSettings();
 
-        // 🟢 บันทึกตั้งค่าใบเสร็จ
         window.saveReceiptSettings = async () => {
             const btn = event.currentTarget;
             const origHTML = btn.innerHTML;
@@ -821,9 +889,9 @@
 
             try {
                 await setDoc(doc(db, "settings", "receipt"), receiptSettings);
-                alert('บันทึกการตั้งค่าร้านค้าเรียบร้อยแล้ว');
+                window.showCustomAlert('บันทึกการตั้งค่าร้านค้าเรียบร้อยแล้ว');
             } catch(e) {
-                alert('เกิดข้อผิดพลาดในการบันทึก');
+                window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึก');
             } finally {
                 btn.innerHTML = origHTML;
                 btn.disabled = false;
@@ -941,18 +1009,18 @@
 
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-${color}-500 flex flex-col h-full">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl shrink-0">
                             <div>
                                 <p class="font-bold text-lg">${isDel ? (order.customer || 'ลูกค้าเดลิเวอรี่') : `โต๊ะ ${order.table || 'Walk-in'}`}</p>
                                 <p class="text-[10px] text-slate-400">ID: ${order.id}</p>
                             </div>
                             <span class="px-2 py-1 bg-${color}-100 text-${color}-700 font-bold rounded text-[10px] uppercase">${isDel ? 'Delivery' : 'Dine-In'}</span>
                         </div>
-                        <div class="p-4 flex-1">
+                        <div class="p-4 flex-1 overflow-y-auto min-h-0">
                             ${itemsHTML}
                             <button onclick="window.viewOrderFullscreen('${order.id}')" class="w-full mt-3 bg-slate-100 text-slate-600 font-bold text-xs py-2 rounded-lg hover:bg-slate-200 transition-colors"><i class="fas fa-expand-alt mr-1"></i> ดูเต็มจอ</button>
                         </div>
-                        <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl flex justify-between items-center">
+                        <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl flex justify-between items-center shrink-0">
                             <span class="font-bold text-lg">฿${orderTotal}</span>
                             <button onclick="window.updateOrderStatus('${order.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ทำอาหารเสร็จแล้ว</button>
                         </div>
@@ -994,8 +1062,8 @@
 
             const content = document.getElementById('order-fullscreen-content');
             content.innerHTML = `
-                <div class="max-w-4xl mx-auto">
-                    <div class="flex justify-between items-start mb-8">
+                <div class="max-w-4xl mx-auto h-full flex flex-col">
+                    <div class="flex justify-between items-start mb-8 shrink-0">
                         <div>
                             <span class="px-3 py-1 bg-${color}-500/20 text-${color}-400 font-bold rounded text-sm uppercase mb-3 inline-block">${isDel ? 'Delivery Order' : 'Dine-In Order'}</span>
                             <h1 class="text-5xl font-bold text-white tracking-wide">${isDel ? (order.customer || 'ลูกค้า') : `โต๊ะ ${order.table || 'Walk-in'}`}</h1>
@@ -1008,7 +1076,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-800 rounded-2xl p-8 shadow-xl border border-slate-700">
+                    <div class="bg-slate-800 rounded-2xl p-8 shadow-xl border border-slate-700 flex-1 overflow-y-auto min-h-0">
                         <h3 class="text-xl font-bold text-slate-300 mb-4 border-b border-slate-700 pb-4">รายการอาหาร</h3>
                         ${itemsHTML}
                         
@@ -1024,7 +1092,7 @@
                         </div>` : ''}
                     </div>
 
-                    <div class="mt-8 flex justify-end gap-4">
+                    <div class="mt-8 flex justify-end gap-4 shrink-0">
                         <button onclick="closeOrderFullscreen()" class="px-8 py-4 bg-slate-700 text-white rounded-xl text-xl font-bold hover:bg-slate-600 transition-colors">ปิดหน้าต่าง</button>
                         <button onclick="window.updateOrderStatus('${order.id}'); closeOrderFullscreen();" class="px-8 py-4 bg-emerald-500 text-white rounded-xl text-xl font-bold shadow-lg hover:bg-emerald-600 transition-colors"><i class="fas fa-check-circle mr-2"></i> ทำอาหารเสร็จสิ้น (ส่งไปรอคิดเงิน)</button>
                     </div>
@@ -1075,15 +1143,13 @@
             }
         });
 
-        window.updateOrderStatus = async (orderId) => {
-            if(confirm('ยืนยันทำอาหารเสร็จเรียบร้อย?\n(ออเดอร์จะถูกซ่อนจากห้องครัว และส่งไปรอคิดเงินที่แคชเชียร์)')) {
+        window.updateOrderStatus = (orderId) => {
+            window.showCustomConfirm('ยืนยันทำอาหารเสร็จเรียบร้อย?\n(ออเดอร์จะถูกซ่อนจากห้องครัว และส่งไปรอคิดเงินที่แคชเชียร์)', async () => {
                 await updateDoc(doc(db, "orders", orderId), { status: "รอชำระเงิน" });
-            }
+            });
         };
 
         // --- Menu Management ---
-        let optionGroups = [];
-        
         window.openMenuPanel = (id = null) => {
             document.getElementById('menu-panel-overlay').classList.remove('hidden');
             document.getElementById('menu-panel').classList.remove('translate-x-full');
@@ -1157,8 +1223,8 @@
                         <div class="grid grid-cols-2 gap-2 mb-3">
                             <input type="text" placeholder="ชื่อกลุ่ม (เช่น ความเผ็ด)" value="${g.title}" onchange="updateGrp('${g.id}', 'title', this.value)" class="w-full p-2 border rounded-lg text-sm font-bold outline-none">
                             <select onchange="updateGrp('${g.id}', 'type', this.value)" class="p-2 border rounded-lg text-sm outline-none">
-                                <option value="single" ${g.type === 'single' ? 'selected':''}>🔘 บังคับเลือก 1 ข้อ</option>
-                                <option value="multiple" ${g.type === 'multiple' ? 'selected':''}>☑️ เลือกได้หลายข้อ (ท็อปปิ้ง)</option>
+                                <option value="single" ${g.type === 'single' ? 'selected':''}>บังคับเลือก 1 ข้อ</option>
+                                <option value="multiple" ${g.type === 'multiple' ? 'selected':''}>เลือกได้หลายข้อ (ท็อปปิ้ง)</option>
                             </select>
                         </div>
                         <div class="pl-2 border-l-2 border-emerald-200">
@@ -1179,7 +1245,7 @@
             const stock = stockInput === '' ? null : parseInt(stockInput);
             const imgUrl = document.getElementById('menu-img-url').value || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'; 
             
-            if(!name || isNaN(price)) return alert('กรุณากรอกชื่อและราคาให้ครบถ้วน');
+            if(!name || isNaN(price)) return window.showCustomAlert('กรุณากรอกชื่อและราคาให้ครบถ้วน');
 
             const btn = document.getElementById('btn-save-menu');
             btn.innerHTML = 'กำลังบันทึก...';
@@ -1194,16 +1260,20 @@
                 name, price, category, stock, img: imgUrl, options: cleanOptions, updated_at: new Date() 
             };
 
-            if(id) {
-                await updateDoc(doc(db, "menu_items", id), menuData);
-            } else {
-                menuData.created_at = new Date();
-                await addDoc(collection(db, "menu_items"), menuData);
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "menu_items", id), menuData);
+                } else {
+                    menuData.created_at = new Date();
+                    await addDoc(collection(db, "menu_items"), menuData);
+                }
+                window.closeMenuPanel();
+            } catch(e) {
+                window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึก');
+            } finally {
+                btn.innerHTML = 'บันทึกข้อมูลเข้าระบบ';
+                btn.disabled = false;
             }
-            
-            btn.innerHTML = 'บันทึกข้อมูลเข้าระบบ';
-            btn.disabled = false;
-            window.closeMenuPanel();
         };
 
         window.setMenuCategory = (cat) => {
@@ -1279,9 +1349,12 @@
             }
         });
 
-        window.deleteMenu = async (id) => { if(confirm('ลบเมนูถาวร?')) await deleteDoc(doc(db, "menu_items", id)); };
+        window.deleteMenu = (id) => { 
+            window.showCustomConfirm('ต้องการลบเมนูถาวรหรือไม่?', async () => {
+                await deleteDoc(doc(db, "menu_items", id));
+            });
+        };
 
-        // --- Coupons Management ---
         window.openCouponPanel = (id = null) => {
             document.getElementById('coupon-panel-overlay').classList.remove('hidden');
             document.getElementById('coupon-panel').classList.remove('translate-x-full');
@@ -1350,8 +1423,8 @@
             
             const selectedItems = Array.from(document.querySelectorAll('.coupon-item-cb:checked')).map(cb => cb.value);
 
-            if(!code || isNaN(value) || value <= 0) return alert('กรุณากรอกรหัส/ชื่อโปรโมชั่น และมูลค่าส่วนลดให้ถูกต้อง');
-            if(selectedItems.length === 0) return alert('กรุณาเลือกเมนูที่สามารถใช้คูปองนี้ได้อย่างน้อย 1 รายการ');
+            if(!code || isNaN(value) || value <= 0) return window.showCustomAlert('กรุณากรอกรหัส/ชื่อโปรโมชั่น และมูลค่าส่วนลดให้ถูกต้อง');
+            if(selectedItems.length === 0) return window.showCustomAlert('กรุณาเลือกเมนูที่สามารถใช้คูปองนี้ได้อย่างน้อย 1 รายการ');
 
             const btn = document.getElementById('btn-save-coupon');
             btn.innerHTML = 'กำลังบันทึก...';
@@ -1363,17 +1436,21 @@
                 updated_at: new Date(), active: true
             };
 
-            if (id) {
-                await updateDoc(doc(db, "coupons", id), couponData);
-            } else {
-                couponData.usedCount = 0; 
-                couponData.created_at = new Date();
-                await addDoc(collection(db, "coupons"), couponData);
+            try {
+                if (id) {
+                    await updateDoc(doc(db, "coupons", id), couponData);
+                } else {
+                    couponData.usedCount = 0; 
+                    couponData.created_at = new Date();
+                    await addDoc(collection(db, "coupons"), couponData);
+                }
+                window.closeCouponPanel();
+            } catch(e) {
+                window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึก');
+            } finally {
+                btn.innerHTML = 'บันทึกโปรโมชั่น';
+                btn.disabled = false;
             }
-
-            btn.innerHTML = 'บันทึกโปรโมชั่น';
-            btn.disabled = false;
-            window.closeCouponPanel();
         };
 
         const qCoupon = query(collection(db, "coupons"), orderBy("created_at", "desc"));
@@ -1392,10 +1469,10 @@
                 adminCoupons.push(c);
                 const typeText = c.type === 'percent' ? '%' : 'บาท';
                 const limitText = c.usageLimit > 0 ? `${c.usedCount || 0}/${c.usageLimit} ครั้ง` : 'ไม่จำกัด';
-                const viewText = c.visibility === 'show' ? '<i class="fas fa-eye text-emerald-500"></i> แสดงผลหน้าร้าน' : '<i class="fas fa-eye-slash text-slate-400"></i> ซ่อน (พิมพ์รหัสเอง)';
+                const viewText = c.visibility === 'show' ? '<i class="fas fa-eye text-emerald-500"></i> แสดงผลหน้าร้าน' : '<i class="fas fa-eye-slash text-slate-400"></i> ซ่อน';
 
                 container.innerHTML += `
-                    <div class="bg-white rounded-xl border border-indigo-100 p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    <div class="bg-white rounded-xl border border-indigo-100 p-5 shadow-sm flex flex-col justify-between relative overflow-hidden shrink-0">
                         <div class="absolute top-0 right-0 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-bl-lg">Active</div>
                         <div class="flex justify-between items-start mb-2 pr-10">
                             <h3 class="font-bold text-lg text-emerald-600"><i class="fas fa-ticket-alt"></i> ${c.code}</h3>
@@ -1415,7 +1492,11 @@
             });
         });
 
-        window.deleteCoupon = async (id) => { if(confirm('ต้องการลบคูปอง/โปรโมชั่นนี้ใช่หรือไม่?')) await deleteDoc(doc(db, "coupons", id)); };
+        window.deleteCoupon = (id) => { 
+            window.showCustomConfirm('ต้องการลบคูปอง/โปรโมชั่นนี้ใช่หรือไม่?', async () => {
+                await deleteDoc(doc(db, "coupons", id));
+            });
+        };
 
         // ==========================================
         // 🟢 ส่วนการทำงานของ POS (ระบบแคชเชียร์)
@@ -1459,7 +1540,7 @@
                 const isOutOfStock = m.stock === 0;
                 
                 return `
-                <div onclick="clickPosMenu('${m.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer relative ${isOutOfStock ? 'opacity-50 grayscale' : 'active:scale-95'} flex flex-col h-full">
+                <div onclick="clickPosMenu('${m.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer relative ${isOutOfStock ? 'opacity-50 grayscale' : 'active:scale-95'} flex flex-col h-full shrink-0">
                     ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center"><span class="bg-rose-500 text-white px-3 py-1 font-bold rounded-lg text-sm">หมด</span></div>' : ''}
                     <div class="h-32 w-full relative shrink-0">
                         <img src="${m.img}" class="w-full h-full object-cover">
@@ -1476,7 +1557,7 @@
 
         window.clickPosMenu = (menuId) => {
             const m = adminMenus.find(x => x.id === menuId);
-            if(m.stock === 0) return alert('สินค้านี้หมดสต็อก');
+            if(m.stock === 0) return window.showCustomAlert('สินค้านี้หมดสต็อก');
             
             posActiveItem = JSON.parse(JSON.stringify(m));
             posActiveQty = 1;
@@ -1496,7 +1577,7 @@
                     let choicesHtml = g.choices.map((c, cIdx) => `
                         <label class="flex justify-between items-center p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50 active:scale-95 transition-all">
                             <div class="flex items-center gap-3">
-                                <input type="${inputType}" name="opt_${gIdx}" value="${c.name}" data-price="${c.price}" class="pos-opt-input w-5 h-5 text-emerald-600 rounded ${isSingle ? '' : 'rounded-md'}" onchange="updatePosOptTotal()">
+                                <input type="${inputType}" name="opt_${gIdx}" value="${c.name}" data-price="${c.price}" class="pos-opt-input w-5 h-5 text-emerald-600 rounded ${isSingle ? 'rounded-full' : 'rounded-md'}" onchange="updatePosOptTotal()">
                                 <span class="font-medium text-slate-700">${c.name}</span>
                             </div>
                             <span class="text-slate-500 font-bold">${c.price > 0 ? '+฿'+c.price : ''}</span>
@@ -1515,6 +1596,7 @@
             }
 
             updatePosOptTotal();
+            document.getElementById('pos-opt-body').scrollTop = 0;
             document.getElementById('pos-option-modal').classList.remove('hidden');
             document.getElementById('pos-option-modal').classList.add('flex');
         };
@@ -1550,7 +1632,7 @@
             for (let i = 0; i < groups.length; i++) {
                 const checked = document.querySelectorAll(`input[name="opt_${i}"]:checked`);
                 if (groups[i].type === 'single' && checked.length === 0) {
-                    return alert(`กรุณาเลือก: ${groups[i].title}`);
+                    return window.showCustomAlert(`กรุณาเลือก: ${groups[i].title}`);
                 }
                 checked.forEach(el => {
                     const price = parseFloat(el.getAttribute('data-price')) || 0;
@@ -1600,7 +1682,7 @@
                 subtotal += itemTotal;
 
                 return `
-                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 shrink-0">
                     <div class="flex justify-between items-start">
                         <div class="flex-1 pr-2">
                             <h4 class="font-bold text-slate-800 leading-tight">${item.name}</h4>
@@ -1648,7 +1730,7 @@
 
         window.clearPosCart = () => {
             if(posCart.length === 0) return;
-            if(confirm('ต้องการล้างตะกร้าทั้งหมดหรือไม่?')) {
+            window.showCustomConfirm('ต้องการล้างตะกร้าทั้งหมดหรือไม่?', () => {
                 posCart = [];
                 posEditingOrderId = null; 
                 currentOrderDiscount = 0;
@@ -1656,81 +1738,83 @@
                 mergedOrderIds = []; 
                 document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
                 renderPosCart();
-            }
+            });
         };
 
-        window.saveOrderToTable = async (event) => {
-            if(posCart.length === 0) return alert('ตะกร้าว่างเปล่า');
+        window.saveOrderToTable = (event) => {
+            if(posCart.length === 0) return window.showCustomAlert('ตะกร้าว่างเปล่า');
             
-            const tableName = prompt('ระบุหมายเลขโต๊ะ หรือ ชื่อลูกค้า สำหรับออเดอร์นี้:', document.getElementById('pos-cart-title').innerText.replace('บิลโต๊ะ: ', '').replace('บิลรวมโต๊ะ: ', '').replace('ออเดอร์ปัจจุบัน', '').trim() || '');
-            if(!tableName) return;
-
+            const defaultName = document.getElementById('pos-cart-title').innerText.replace('บิลโต๊ะ:', '').replace('บิลรวมโต๊ะ:', '').replace('ออเดอร์ปัจจุบัน', '').trim() || '';
             const btn = event.currentTarget;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> รอสักครู่...';
-            btn.disabled = true;
-
-            try {
-                let subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
-                let finalTotal = Math.max(0, subtotal - currentOrderDiscount);
-
-                if (mergedOrderIds.length > 0) {
-                    for (const oldId of mergedOrderIds) {
-                        await deleteDoc(doc(db, "orders", oldId));
-                    }
-                    await addDoc(collection(db, "orders"), {
-                        customer: tableName,
-                        table: tableName,
-                        type: 'dine-in',
-                        status: 'รอชำระเงิน', 
-                        items: posCart,
-                        total: finalTotal,
-                        discount: currentOrderDiscount,
-                        couponCode: currentOrderCouponCode,
-                        timestamp: new Date()
-                    });
-                }
-                else if (posEditingOrderId) {
-                    await updateDoc(doc(db, "orders", posEditingOrderId), {
-                        table: tableName,
-                        items: posCart,
-                        total: finalTotal,
-                        discount: currentOrderDiscount,
-                        couponCode: currentOrderCouponCode,
-                        updated_at: new Date()
-                    });
-                } else {
-                    await addDoc(collection(db, "orders"), {
-                        customer: tableName,
-                        table: tableName,
-                        type: 'dine-in',
-                        status: 'กำลังทำ', 
-                        items: posCart,
-                        total: finalTotal,
-                        discount: currentOrderDiscount,
-                        couponCode: currentOrderCouponCode,
-                        timestamp: new Date()
-                    });
-                }
+            
+            window.showCustomPrompt('ระบุหมายเลขโต๊ะ หรือ ชื่อลูกค้า สำหรับออเดอร์นี้:', defaultName, async (tableName) => {
+                if(!tableName) return;
                 
-                alert('บันทึกออเดอร์เข้าโต๊ะเรียบร้อย!');
-                posCart = [];
-                posEditingOrderId = null;
-                currentOrderDiscount = 0;
-                currentOrderCouponCode = '';
-                mergedOrderIds = [];
-                document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
-                renderPosCart();
-            } catch (error) {
-                console.error(error);
-                alert('เกิดข้อผิดพลาดในการบันทึก');
-            } finally {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> รอสักครู่...';
+                btn.disabled = true;
+
+                try {
+                    let subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
+                    let finalTotal = Math.max(0, subtotal - currentOrderDiscount);
+
+                    if (mergedOrderIds.length > 0) {
+                        for (const oldId of mergedOrderIds) {
+                            await deleteDoc(doc(db, "orders", oldId));
+                        }
+                        await addDoc(collection(db, "orders"), {
+                            customer: tableName,
+                            table: tableName,
+                            type: 'dine-in',
+                            status: 'รอชำระเงิน', 
+                            items: posCart,
+                            total: finalTotal,
+                            discount: currentOrderDiscount,
+                            couponCode: currentOrderCouponCode,
+                            timestamp: new Date()
+                        });
+                    }
+                    else if (posEditingOrderId) {
+                        await updateDoc(doc(db, "orders", posEditingOrderId), {
+                            table: tableName,
+                            items: posCart,
+                            total: finalTotal,
+                            discount: currentOrderDiscount,
+                            couponCode: currentOrderCouponCode,
+                            updated_at: new Date()
+                        });
+                    } else {
+                        await addDoc(collection(db, "orders"), {
+                            customer: tableName,
+                            table: tableName,
+                            type: 'dine-in',
+                            status: 'กำลังทำ', 
+                            items: posCart,
+                            total: finalTotal,
+                            discount: currentOrderDiscount,
+                            couponCode: currentOrderCouponCode,
+                            timestamp: new Date()
+                        });
+                    }
+                    
+                    window.showCustomAlert('บันทึกออเดอร์เข้าโต๊ะเรียบร้อยแล้ว');
+                    posCart = [];
+                    posEditingOrderId = null;
+                    currentOrderDiscount = 0;
+                    currentOrderCouponCode = '';
+                    mergedOrderIds = [];
+                    document.getElementById('pos-cart-title').innerHTML = '<i class="fas fa-shopping-basket mr-2"></i>ออเดอร์ปัจจุบัน';
+                    renderPosCart();
+                } catch (error) {
+                    console.error(error);
+                    window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึก');
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            });
         };
 
-        // 🟢 ระบบดึงบิล / รวมบิล
         window.openPendingBillsModal = () => {
             const list = document.getElementById('pos-pending-bills-list');
             const pendingOrders = activeOrders;
@@ -1748,8 +1832,8 @@
                 list.innerHTML = Object.keys(groupedOrders).map(tableName => {
                     const ordersForTable = groupedOrders[tableName];
                     
-                    let html = `<div class="mb-4 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                    <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                    let html = `<div class="mb-4 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm shrink-0">
+                                    <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex justify-between items-center shrink-0">
                                         <h4 class="font-bold text-slate-800 text-lg">โต๊ะ: ${tableName} <span class="text-sm font-normal text-slate-500">(${ordersForTable.length} บิล)</span></h4>`;
                     
                     if (ordersForTable.length > 1) {
@@ -1793,88 +1877,100 @@
             
             document.getElementById('pos-pending-bills-modal').classList.remove('hidden');
             document.getElementById('pos-pending-bills-modal').classList.add('flex');
+            setTimeout(() => document.getElementById('pos-pending-bills-box').classList.remove('scale-95'), 10);
         };
 
         window.closePendingBillsModal = () => {
-            document.getElementById('pos-pending-bills-modal').classList.add('hidden');
-            document.getElementById('pos-pending-bills-modal').classList.remove('flex');
+            document.getElementById('pos-pending-bills-box').classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('pos-pending-bills-modal').classList.add('hidden');
+                document.getElementById('pos-pending-bills-modal').classList.remove('flex');
+            }, 200);
         };
 
         window.loadPendingBill = (orderId) => {
             const order = activeOrders.find(o => o.id === orderId);
-            if(!order) return alert('ไม่พบข้อมูลออเดอร์');
+            if(!order) return window.showCustomAlert('ไม่พบข้อมูลออเดอร์');
+
+            const proceed = () => {
+                posCart = JSON.parse(JSON.stringify(order.items || [])).map(item => ({
+                    ...item,
+                    totalItemPrice: window.getSafeItemTotal(item)
+                }));
+                
+                currentOrderDiscount = parseFloat(order.discount) || 0;
+                currentOrderCouponCode = order.couponCode || '';
+                posEditingOrderId = order.id;
+                mergedOrderIds = []; 
+
+                document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-shopping-basket mr-2"></i>บิลโต๊ะ: <span class="text-amber-600">${order.table || order.customer}</span>`;
+                
+                renderPosCart();
+                closePendingBillsModal();
+            };
 
             if(posCart.length > 0) {
-                if(!confirm('มีรายการที่ยังไม่บันทึกอยู่ในตะกร้า หากดึงบิลโต๊ะอื่น รายการปัจจุบันจะหายไป ยืนยันหรือไม่?')) return;
+                window.showCustomConfirm('มีรายการที่ยังไม่บันทึกอยู่ในตะกร้า หากดึงบิลโต๊ะอื่น รายการปัจจุบันจะหายไป ยืนยันหรือไม่?', proceed);
+            } else {
+                proceed();
             }
-
-            posCart = JSON.parse(JSON.stringify(order.items || [])).map(item => ({
-                ...item,
-                totalItemPrice: window.getSafeItemTotal(item)
-            }));
-            
-            currentOrderDiscount = parseFloat(order.discount) || 0;
-            currentOrderCouponCode = order.couponCode || '';
-            posEditingOrderId = order.id;
-            mergedOrderIds = []; 
-
-            document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-shopping-basket mr-2"></i>บิลโต๊ะ: <span class="text-amber-600">${order.table || order.customer}</span>`;
-            
-            renderPosCart();
-            closePendingBillsModal();
         };
 
         window.mergePendingBills = (tableName) => {
             const ordersToMerge = activeOrders.filter(o => (o.table || o.customer) === tableName);
-            if(ordersToMerge.length < 2) return alert('ไม่พบบิลที่สามารถรวมได้');
+            if(ordersToMerge.length < 2) return window.showCustomAlert('ไม่พบบิลที่สามารถรวมได้');
+
+            const proceed = () => {
+                posCart = [];
+                currentOrderDiscount = 0;
+                currentOrderCouponCode = 'รวมหลายบิล';
+                mergedOrderIds = [];
+
+                ordersToMerge.forEach(o => {
+                    mergedOrderIds.push(o.id);
+                    currentOrderDiscount += (parseFloat(o.discount) || 0); 
+                    
+                    (o.items || []).forEach(item => {
+                        const existingItemIndex = posCart.findIndex(cartItem => 
+                            cartItem.name === item.name && 
+                            cartItem.options === item.options && 
+                            cartItem.note === item.note
+                        );
+
+                        if (existingItemIndex !== -1) {
+                            posCart[existingItemIndex].qty += parseInt(item.qty || 1);
+                            posCart[existingItemIndex].totalItemPrice = window.getSafeItemTotal(posCart[existingItemIndex]);
+                        } else {
+                            posCart.push({
+                                ...item,
+                                qty: parseInt(item.qty || 1),
+                                totalItemPrice: window.getSafeItemTotal(item)
+                            });
+                        }
+                    });
+                });
+                
+                posEditingOrderId = null; 
+
+                document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-object-group mr-2"></i>บิลรวมโต๊ะ: <span class="text-indigo-600">${tableName}</span>`;
+                
+                renderPosCart();
+                closePendingBillsModal();
+                window.showCustomAlert(`รวมบิลของโต๊ะ ${tableName} สำเร็จ! ตรวจสอบรายการในตะกร้าและกดชำระเงินได้เลย`);
+            };
 
             if(posCart.length > 0) {
-                if(!confirm('มีรายการที่ยังไม่บันทึกอยู่ในตะกร้า หากรวมบิลโต๊ะอื่น รายการปัจจุบันจะหายไป ยืนยันหรือไม่?')) return;
+                window.showCustomConfirm('มีรายการที่ยังไม่บันทึกอยู่ในตะกร้า หากรวมบิลโต๊ะอื่น รายการปัจจุบันจะหายไป ยืนยันหรือไม่?', proceed);
+            } else {
+                proceed();
             }
-
-            posCart = [];
-            currentOrderDiscount = 0;
-            currentOrderCouponCode = 'รวมหลายบิล (Merged)';
-            mergedOrderIds = [];
-
-            ordersToMerge.forEach(o => {
-                mergedOrderIds.push(o.id);
-                currentOrderDiscount += (parseFloat(o.discount) || 0); 
-                
-                (o.items || []).forEach(item => {
-                    const existingItemIndex = posCart.findIndex(cartItem => 
-                        cartItem.name === item.name && 
-                        cartItem.options === item.options && 
-                        cartItem.note === item.note
-                    );
-
-                    if (existingItemIndex !== -1) {
-                        posCart[existingItemIndex].qty += parseInt(item.qty || 1);
-                        posCart[existingItemIndex].totalItemPrice = window.getSafeItemTotal(posCart[existingItemIndex]);
-                    } else {
-                        posCart.push({
-                            ...item,
-                            qty: parseInt(item.qty || 1),
-                            totalItemPrice: window.getSafeItemTotal(item)
-                        });
-                    }
-                });
-            });
-            
-            posEditingOrderId = null; 
-
-            document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-object-group mr-2"></i>บิลรวมโต๊ะ: <span class="text-indigo-600">${tableName}</span>`;
-            
-            renderPosCart();
-            closePendingBillsModal();
-            alert(`รวมบิลของโต๊ะ ${tableName} สำเร็จ! ตรวจสอบรายการในตะกร้าและกดชำระเงินได้เลย`);
         };
 
         let posPaymentMethod = 'cash';
         let posTotalAmount = 0;
 
         window.openPosCheckout = () => {
-            if(posCart.length === 0) return alert('ตะกร้าว่างเปล่า');
+            if(posCart.length === 0) return window.showCustomAlert('ตะกร้าว่างเปล่า');
             
             const subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
             posTotalAmount = Math.max(0, subtotal - currentOrderDiscount);
@@ -1903,11 +1999,15 @@
             selectPaymentMethod('cash');
             document.getElementById('pos-checkout-modal').classList.remove('hidden');
             document.getElementById('pos-checkout-modal').classList.add('flex');
+            setTimeout(() => document.getElementById('pos-checkout-box').classList.remove('scale-95'), 10);
         };
 
         window.closePosCheckout = () => {
-            document.getElementById('pos-checkout-modal').classList.add('hidden');
-            document.getElementById('pos-checkout-modal').classList.remove('flex');
+            document.getElementById('pos-checkout-box').classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('pos-checkout-modal').classList.add('hidden');
+                document.getElementById('pos-checkout-modal').classList.remove('flex');
+            }, 200);
         };
 
         window.selectPaymentMethod = (method) => {
@@ -1932,7 +2032,6 @@
             }
         };
 
-        // 🟢 ปุ่มรับเงินสด
         window.addCashAmount = (amount) => {
             const input = document.getElementById('pos-cash-received');
             let current = parseFloat(input.value) || 0;
@@ -1967,7 +2066,7 @@
 
             if(posPaymentMethod === 'cash') {
                 receivedAmount = parseFloat(document.getElementById('pos-cash-received').value) || 0;
-                if(receivedAmount < posTotalAmount) return alert('จำนวนเงินที่รับมาน้อยกว่ายอดชำระ');
+                if(receivedAmount < posTotalAmount) return window.showCustomAlert('จำนวนเงินที่รับมาน้อยกว่ายอดชำระ');
                 changeAmount = receivedAmount - posTotalAmount;
             }
 
@@ -1976,8 +2075,8 @@
             const origPrintHTML = btnPrint.innerHTML;
             const origNoPrintHTML = btnNoPrint.innerHTML;
             
-            btnPrint.innerHTML = 'กำลังบันทึก...'; btnPrint.disabled = true;
-            btnNoPrint.innerHTML = 'กำลังบันทึก...'; btnNoPrint.disabled = true;
+            btnPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...'; btnPrint.disabled = true;
+            btnNoPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> บันทึก...'; btnNoPrint.disabled = true;
 
             try {
                 for (const item of posCart) {
@@ -2001,8 +2100,8 @@
                     discount: currentOrderDiscount,
                     couponCode: currentOrderCouponCode,
                     paymentMethod: posPaymentMethod,
-                    receivedAmount: receivedAmount, // 🟢 บันทึกเงินรับ
-                    changeAmount: changeAmount,     // 🟢 บันทึกเงินทอน
+                    receivedAmount: receivedAmount,
+                    changeAmount: changeAmount,
                     timestamp: new Date(),
                     paid_at: new Date()
                 };
@@ -2041,29 +2140,24 @@
                 closePosCheckout();
 
                 if (shouldPrint && savedOrderId) {
-                    // เรียกฟังก์ชันพิมพ์ใบเสร็จ
                     window.showReceipt(savedOrderId);
                 } else {
-                    alert('รับชำระเงินและบันทึกออเดอร์เรียบร้อย!');
+                    window.showCustomAlert('รับชำระเงินและบันทึกออเดอร์เรียบร้อยแล้ว');
                 }
                 
             } catch (error) {
                 console.error(error);
-                alert('เกิดข้อผิดพลาดในการบันทึกการชำระเงิน');
+                window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึกการชำระเงิน');
             } finally {
                 btnPrint.innerHTML = origPrintHTML; btnPrint.disabled = false;
                 btnNoPrint.innerHTML = origNoPrintHTML; btnNoPrint.disabled = false;
             }
         };
 
-        // ==========================================
-        // 🟢 ระบบใบเสร็จรับเงิน (Thermal Receipt)
-        // ==========================================
         window.showReceipt = (orderId) => {
             const order = allOrdersForAnalytics.find(o => o.id === orderId) || activeOrders.find(o => o.id === orderId);
-            if (!order) return alert('ไม่พบข้อมูลออเดอร์สำหรับการพิมพ์');
+            if (!order) return window.showCustomAlert('ไม่พบข้อมูลออเดอร์สำหรับการพิมพ์');
 
-            // ใส่ข้อมูลตั้งค่าร้านค้า
             if (receiptSettings.logo) {
                 document.getElementById('rcpt-logo').src = receiptSettings.logo;
                 document.getElementById('rcpt-logo').classList.remove('hidden');
@@ -2087,14 +2181,12 @@
                 document.getElementById('rcpt-branch').classList.add('hidden');
             }
 
-            document.getElementById('rcpt-footer-msg').innerText = receiptSettings.footerMsg || 'ขอบคุณที่ใช้บริการ';
+            document.getElementById('rcpt-footer-msg').innerText = receiptSettings.footerMsg || 'ขอบคุณที่ใช้บริการโอกาสหน้าเชิญใหม่';
 
-            // ข้อมูลออเดอร์
-            document.getElementById('rcpt-order-id').innerText = order.id.substring(0, 8).toUpperCase(); // ย่อ ID ให้สั้น
+            document.getElementById('rcpt-order-id').innerText = order.id.substring(0, 8).toUpperCase();
             const tDate = order.paid_at?.toDate ? order.paid_at.toDate() : (order.timestamp?.toDate ? order.timestamp.toDate() : new Date());
             document.getElementById('rcpt-date').innerText = tDate.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
 
-            // รายการอาหาร
             let subtotal = 0;
             const itemsHtml = (order.items || []).map(item => {
                 const iTotal = window.getSafeItemTotal(item);
@@ -2116,7 +2208,6 @@
             document.getElementById('rcpt-discount').innerText = disc > 0 ? `-${disc.toLocaleString()}` : '0';
             document.getElementById('rcpt-total').innerText = finalTotal.toLocaleString();
 
-            // ข้อมูลการจ่ายเงิน
             const payMethods = { 'cash': 'เงินสด', 'qr': 'สแกน QR', 'card': 'บัตรเครดิต' };
             document.getElementById('rcpt-pay-method').innerText = payMethods[order.paymentMethod] || 'ไม่ระบุ';
             
@@ -2128,7 +2219,6 @@
                 document.getElementById('rcpt-payment-details').classList.add('hidden');
             }
 
-            // บาร์โค้ด
             JsBarcode("#receipt-barcode", order.id.substring(0, 12), {
                 format: "CODE128",
                 width: 1.5,
@@ -2147,9 +2237,6 @@
             document.getElementById('receipt-modal-bg').classList.remove('flex');
         };
 
-        // ==========================================
-        // 🟢 ระบบประวัติรายการย้อนหลัง (History)
-        // ==========================================
         window.renderHistory = () => {
             const container = document.getElementById('history-list-container');
             container.innerHTML = '';
@@ -2157,20 +2244,19 @@
             const period = document.getElementById('history-period').value;
             const searchQuery = document.getElementById('history-search').value.toLowerCase().trim();
             const now = new Date();
-            let start = new Date(0); // ค่าเริ่มต้นคือดึงทั้งหมด
+            let start = new Date(0); 
 
             if (period === 'today') {
                 start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             } else if (period === 'yesterday') {
                 start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-                now.setHours(0,0,0,0); // สิ้นสุดที่เริ่มวันนี้
+                now.setHours(0,0,0,0); 
             } else if (period === '7days') {
                 start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
             } else if (period === '30days') {
                 start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
             }
 
-            // กรองข้อมูล
             const filteredOrders = allOrdersForAnalytics.filter(o => {
                 const t = o.timestamp?.toDate ? o.timestamp.toDate() : new Date(o.timestamp || o.paid_at || Date.now());
                 const isDateMatch = period === 'all' || (t >= start && t <= now);
@@ -2178,7 +2264,6 @@
                 return isDateMatch && isSearchMatch;
             });
 
-            // เรียงจากใหม่ไปเก่า
             filteredOrders.sort((a,b) => {
                 const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
                 const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
@@ -2212,10 +2297,6 @@
             }).join('');
         };
 
-
-        // ==========================================
-        // 🟢 ส่วนการทำงานของ สถิติและสรุปผล (Analytics)
-        // ==========================================
         let currentAnalyticsPeriod = 'today';
         let analyticsChartObj = null;
 
@@ -2272,8 +2353,6 @@
             let itemMap = {};
             let optionMap = {};
             let chartDataMap = {};
-
-            // 🟢 ตัวแปรสำหรับแยกรายได้
             let totalCash = 0;
             let totalQR = 0;
             let totalCard = 0;
@@ -2282,7 +2361,6 @@
                 const orderTotal = parseFloat(o.total) || 0;
                 totalSales += orderTotal;
                 
-                // แยกประเภทเงิน
                 if(o.paymentMethod === 'cash') totalCash += orderTotal;
                 else if(o.paymentMethod === 'qr') totalQR += orderTotal;
                 else if(o.paymentMethod === 'card') totalCard += orderTotal;
@@ -2330,7 +2408,6 @@
             document.getElementById('stat-avg-order').innerText = `฿${avgOrderValue.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('stat-top-item').innerText = topItem.name;
 
-            // 🟢 แสดงรายได้แยกประเภท
             document.getElementById('stat-cash-total').innerText = `฿${totalCash.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
             document.getElementById('stat-qr-total').innerText = `฿${totalQR.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
             document.getElementById('stat-card-total').innerText = `฿${totalCard.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
