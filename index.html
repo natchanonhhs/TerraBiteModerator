@@ -9,10 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <!-- เพิ่ม Leaflet CSS & JS สำหรับแผนที่หลังบ้าน -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         
+        #store-map { z-index: 10; }
+
         @media print {
             body * { visibility: hidden; }
             #receipt-printable-area, #receipt-printable-area * { visibility: visible; }
@@ -517,15 +524,27 @@
 
     <!-- Modal ตั้งค่าการจัดส่ง -->
     <div id="delivery-settings-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] hidden justify-center items-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col transform scale-95 transition-transform" id="delivery-settings-box">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col transform scale-95 transition-transform max-h-[90vh] overflow-y-auto" id="delivery-settings-box">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0 rounded-t-2xl">
                 <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-cog text-rose-500 mr-2"></i>ตั้งค่าการจัดส่ง</h3>
                 <button onclick="closeDeliverySettingsModal()" class="text-slate-400 hover:text-rose-500 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-6 space-y-4">
+                
+                <div class="relative mb-4">
+                    <label class="block text-slate-600 text-sm font-bold mb-1">พิกัดร้านค้า (เลื่อนหมุดเพื่อตั้งค่า)</label>
+                    <div id="store-map" class="h-48 w-full rounded-xl border border-slate-200"></div>
+                    <button onclick="getStoreCurrentLocation()" class="absolute bottom-4 right-4 z-[20] bg-white text-rose-600 p-2 rounded-full shadow-lg border border-rose-100 hover:bg-rose-50" title="ดึงพิกัดปัจจุบัน">
+                        <i class="fas fa-crosshairs text-lg"></i>
+                    </button>
+                </div>
+                <div class="text-[10px] text-slate-500 mb-4 bg-slate-100 p-2 rounded-lg font-mono">
+                    Lat: <span id="store-lat-display">-</span> | Lng: <span id="store-lng-display">-</span>
+                </div>
+
                 <div>
-                    <label class="block text-slate-600 text-sm font-bold mb-1">ค่าจัดส่งเริ่มต้น (บาท)</label>
-                    <input type="number" id="setting-delivery-fee" placeholder="ตัวอย่าง: 40" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-rose-500 text-sm">
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ค่าจัดส่งเริ่มต้น (บาท/กม.)</label>
+                    <input type="number" id="setting-delivery-fee" placeholder="ตัวอย่าง: 10" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-rose-500 text-sm">
                 </div>
                 <div>
                     <label class="block text-slate-600 text-sm font-bold mb-1">ระยะทางจัดส่งสูงสุด (กิโลเมตร)</label>
@@ -952,7 +971,7 @@
             if (docSnapDel.exists()) {
                 deliverySettings = docSnapDel.data();
             } else {
-                deliverySettings = { fee: 40, radius: 15 };
+                deliverySettings = { fee: 10, radius: 15, lat: 13.7563, lng: 100.5018 };
             }
         }
         loadShopSettings();
@@ -1169,6 +1188,9 @@
                     actionBtn = `<button onclick="updateDeliveryStatus('${order.id}', 'เสร็จสิ้น')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ยืนยันการจัดส่งสำเร็จ</button>`;
                 }
 
+                // สร้างลิงก์ไปเปิดแผนที่ Google Maps โดยใช้พิกัดหากมี
+                const mapBtn = order.location ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${order.location.lat},${order.location.lng}" target="_blank" class="text-[11px] bg-blue-50 text-blue-600 px-2 py-1 rounded mt-2 inline-block font-bold border border-blue-200 hover:bg-blue-100"><i class="fas fa-location-arrow"></i> เปิดแผนที่นำทาง</a>` : '';
+
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-rose-500 flex flex-col h-full">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl shrink-0">
@@ -1176,6 +1198,7 @@
                                 <p class="font-bold text-lg truncate">${order.customer || 'ลูกค้า'}</p>
                                 <p class="text-[10px] text-slate-400">ID: ${order.id}</p>
                                 <p class="text-xs text-slate-600 mt-1 line-clamp-2"><i class="fas fa-map-marker-alt text-rose-400"></i> ${order.address || 'ไม่ระบุ'}</p>
+                                ${mapBtn}
                             </div>
                             <div class="flex flex-col items-end gap-1">
                                 ${statusBadge}
@@ -1204,12 +1227,67 @@
             }
         };
 
+        // --- ระบบแผนที่สำหรับกำหนดจุดร้านค้า (Leaflet) ---
         window.openDeliverySettingsModal = () => {
-            document.getElementById('setting-delivery-fee').value = deliverySettings.fee || 40;
+            document.getElementById('setting-delivery-fee').value = deliverySettings.fee || 10;
             document.getElementById('setting-delivery-radius').value = deliverySettings.radius || 15;
+            
+            if(deliverySettings.lat) document.getElementById('store-lat-display').innerText = deliverySettings.lat.toFixed(6);
+            if(deliverySettings.lng) document.getElementById('store-lng-display').innerText = deliverySettings.lng.toFixed(6);
+
             document.getElementById('delivery-settings-modal').classList.remove('hidden');
             document.getElementById('delivery-settings-modal').classList.add('flex');
-            setTimeout(() => document.getElementById('delivery-settings-box').classList.remove('scale-95'), 10);
+            
+            setTimeout(() => {
+                document.getElementById('delivery-settings-box').classList.remove('scale-95');
+                if (!window.storeMap) {
+                    initStoreMap();
+                } else {
+                    const lat = deliverySettings.lat || 13.7563;
+                    const lng = deliverySettings.lng || 100.5018;
+                    window.storeMap.setView([lat, lng], 15);
+                    window.storeMarker.setLatLng([lat, lng]);
+                }
+            }, 300); // ดีเลย์ให้ Animation เปิด Modal เสร็จก่อน เพื่อป้องกันปัญหาแผนที่โหลดไม่เต็มกรอบ
+        };
+
+        function initStoreMap() {
+            const initLat = deliverySettings.lat || 13.7563;
+            const initLng = deliverySettings.lng || 100.5018;
+            
+            window.storeMap = L.map('store-map').setView([initLat, initLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(window.storeMap);
+            
+            window.storeMarker = L.marker([initLat, initLng], {draggable: true}).addTo(window.storeMap);
+            
+            window.storeMarker.on('dragend', function(e) {
+                const pos = window.storeMarker.getLatLng();
+                deliverySettings.lat = pos.lat;
+                deliverySettings.lng = pos.lng;
+                document.getElementById('store-lat-display').innerText = pos.lat.toFixed(6);
+                document.getElementById('store-lng-display').innerText = pos.lng.toFixed(6);
+            });
+        }
+
+        window.getStoreCurrentLocation = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        window.storeMap.setView([lat, lng], 15);
+                        window.storeMarker.setLatLng([lat, lng]);
+                        deliverySettings.lat = lat;
+                        deliverySettings.lng = lng;
+                        document.getElementById('store-lat-display').innerText = lat.toFixed(6);
+                        document.getElementById('store-lng-display').innerText = lng.toFixed(6);
+                    },
+                    (error) => alert('ไม่สามารถดึงตำแหน่งได้ กรุณาเลื่อนหมุดเองบนแผนที่ หรือตรวจสอบการอนุญาต GPS ในเบราว์เซอร์'),
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("เบราว์เซอร์ของคุณไม่รองรับ GPS");
+            }
         };
 
         window.closeDeliverySettingsModal = () => {
@@ -1223,14 +1301,17 @@
         window.saveDeliverySettings = async () => {
             const fee = parseFloat(document.getElementById('setting-delivery-fee').value) || 0;
             const radius = parseFloat(document.getElementById('setting-delivery-radius').value) || 0;
+            const lat = deliverySettings.lat || 13.7563;
+            const lng = deliverySettings.lng || 100.5018;
+
             const btn = document.getElementById('btn-save-del-settings');
             const origHtml = btn.innerHTML;
             btn.innerHTML = 'กำลังบันทึก...'; btn.disabled = true;
 
             try {
-                deliverySettings = { fee, radius };
+                deliverySettings = { fee, radius, lat, lng };
                 await setDoc(doc(db, "settings", "delivery"), deliverySettings, { merge: true });
-                window.showCustomAlert('บันทึกการตั้งค่าจัดส่งเรียบร้อยแล้ว');
+                window.showCustomAlert('บันทึกการตั้งค่าจัดส่งและพิกัดร้านค้าเรียบร้อยแล้ว');
                 closeDeliverySettingsModal();
             } catch(e) {
                 window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
