@@ -198,7 +198,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-slate-600 text-sm font-bold mb-1">เลขผู้เสียภาษี (TAX ID)</label>
+                                <label class="block text-slate-600 text-sm font-bold mb-1">เลขประจำตัวผู้เสียภาษี (TAX ID)</label>
                                 <input type="text" id="setting-tax-id" placeholder="เว้นว่างถ้าไม่มี" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm">
                             </div>
                             <div>
@@ -307,7 +307,7 @@
                     </div>
                     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full flex justify-center items-center"><i class="fas fa-fire text-2xl text-rose-200"></i></div>
-                        <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider z-10">เมนูขายดีสุด</p>
+                        <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider z-10">เมนูฮีโร่ (ขายดีสุด)</p>
                         <h3 class="text-lg sm:text-xl font-bold text-rose-500 z-10 truncate" id="stat-top-item">-</h3>
                     </div>
                 </div>
@@ -671,7 +671,7 @@
         </div>
     </div>
 
-    <!-- 🟢 Custom Alerts & Prompts Modals (แทนที่หน้าต่างของเบราว์เซอร์) -->
+    <!-- 🟢 Custom Alerts & Prompts Modals -->
     <div id="custom-alert" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-alert-box">
             <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fas fa-info-circle"></i></div>
@@ -730,7 +730,6 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 🟢 ระบบ Custom Alert / Confirm / Prompt
         window.showCustomAlert = (msg) => {
             document.getElementById('custom-alert-msg').innerText = msg;
             const modal = document.getElementById('custom-alert');
@@ -811,6 +810,7 @@
         let currentOrderDiscount = 0; 
         let currentOrderCouponCode = ''; 
         let mergedOrderIds = []; 
+        let optionGroups = []; 
 
         window.getSafeItemTotal = (item) => {
             if (!item) return 0;
@@ -1596,15 +1596,19 @@
             }
 
             updatePosOptTotal();
-            document.getElementById('pos-opt-body').scrollTop = 0;
+            document.getElementById('pos-opt-body').scrollTop = 0; // เลื่อนขึ้นไปด้านบนสุด
             document.getElementById('pos-option-modal').classList.remove('hidden');
             document.getElementById('pos-option-modal').classList.add('flex');
+            setTimeout(() => document.getElementById('pos-option-modal-content').classList.remove('scale-95'), 10);
         };
 
         window.closePosOptionModal = () => {
-            document.getElementById('pos-option-modal').classList.add('hidden');
-            document.getElementById('pos-option-modal').classList.remove('flex');
-            posActiveItem = null;
+            document.getElementById('pos-option-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('pos-option-modal').classList.add('hidden');
+                document.getElementById('pos-option-modal').classList.remove('flex');
+                posActiveItem = null;
+            }, 200);
         };
 
         window.changePosOptQty = (delta) => {
