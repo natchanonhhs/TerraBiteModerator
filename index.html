@@ -595,6 +595,10 @@
                     <label class="block text-slate-600 text-sm font-bold mb-1">ระยะทางจัดส่งสูงสุด (กิโลเมตร)</label>
                     <input type="number" id="setting-delivery-radius" placeholder="ตัวอย่าง: 15" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-rose-500 text-sm">
                 </div>
+                <div>
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ระยะทางจัดส่งแบบไม่มีค่าใช้จ่าย (กิโลเมตร)</label>
+                    <input type="number" id="setting-delivery-free-radius" placeholder="ตัวอย่าง: 3" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-rose-500 text-sm">
+                </div>
             </div>
             <div class="p-5 border-t border-slate-200 bg-white flex justify-end gap-3 rounded-b-2xl">
                 <button onclick="closeDeliverySettingsModal()" class="px-5 py-2.5 rounded-lg font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">ยกเลิก</button>
@@ -663,6 +667,33 @@
                 <div class="col-span-2">
                     <label class="block text-slate-600 text-sm font-bold mb-1">จำนวนคลังสินค้า (สต็อก)</label>
                     <input type="number" id="menu-stock" placeholder="เว้นว่างไว้หากไม่จำกัดจำนวน" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500">
+                </div>
+                
+                <!-- ส่วนป้ายสถานะสินค้า (Badge) -->
+                <div class="col-span-2">
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ป้ายสถานะสินค้า (Badge)</label>
+                    <select id="menu-badge" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm">
+                        <option value="">-- ไม่มีป้าย --</option>
+                        <optgroup label="กระตุ้นการตัดสินใจ">
+                            <option value="Best Seller">Best Seller (ขายดี)</option>
+                            <option value="Sale">Sale (ลดราคา)</option>
+                            <option value="New">New (สินค้าใหม่)</option>
+                            <option value="Recommended">Recommended (แนะนำ)</option>
+                        </optgroup>
+                        <optgroup label="ปริมาณและความขาดแคลน">
+                            <option value="Low Stock">Low Stock (ใกล้หมด)</option>
+                            <option value="Out of Stock">Out of Stock (สินค้าหมด)</option>
+                            <option value="Pre-Order">Pre-Order (พรีออเดอร์)</option>
+                        </optgroup>
+                        <optgroup label="สิทธิพิเศษ">
+                            <option value="Free Shipping">Free Shipping (ส่งฟรี)</option>
+                            <option value="Authentic">Authentic (ของแท้)</option>
+                        </optgroup>
+                        <optgroup label="พิเศษ/เทศกาล">
+                            <option value="Limited Edition">Limited Edition</option>
+                            <option value="Bundle Set">Bundle Set</option>
+                        </optgroup>
+                    </select>
                 </div>
             </section>
 
@@ -763,10 +794,10 @@
             <input type="hidden" id="banner-id">
             
             <section class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <label class="block text-slate-600 text-sm font-bold mb-2">ภาพป้ายโฆษณา (สัดส่วน 29.7x21 ซม.)</label>
+                <label class="block text-slate-600 text-sm font-bold mb-2">ภาพป้ายโฆษณา (สัดส่วน 16:5)</label>
                 <input type="file" id="banner-img-upload" accept="image/*" onchange="uploadBannerImage(this)" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100">
                 <input type="hidden" id="banner-img-url">
-                <img id="banner-img-preview" class="mt-3 w-full rounded-lg object-cover hidden shadow-sm border border-slate-200" style="aspect-ratio: 29.7/21;">
+                <img id="banner-img-preview" class="mt-3 w-full rounded-lg object-cover hidden shadow-sm border border-slate-200" style="aspect-ratio: 16/5;">
             </section>
 
             <div>
@@ -775,8 +806,8 @@
             </div>
             
             <div>
-                <label class="block text-slate-600 text-sm font-bold mb-1">เวลาเลื่อนภาพ (นาที)</label>
-                <input type="number" id="banner-timer" value="1" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-pink-500 text-sm">
+                <label class="block text-slate-600 text-sm font-bold mb-1">เวลาเลื่อนภาพ (วินาที)</label>
+                <input type="number" id="banner-timer" value="3" min="1" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-pink-500 text-sm">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -914,6 +945,18 @@
         const supabaseUrl = 'https://vupihvoldblwdtkfnjjc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 🟢 ฟังก์ชันจัดรูปแบบหมายเลขออเดอร์ให้ขึ้นต้นด้วย AD ตามด้วยเลข 5 หลัก
+        window.formatOrderID = (id) => {
+            if (!id) return 'AD00000';
+            if (id.startsWith('AD')) return id;
+            let hash = 0;
+            for (let i = 0; i < id.length; i++) {
+                hash = ((hash << 5) - hash) + id.charCodeAt(i);
+                hash |= 0; 
+            }
+            return 'AD' + String(Math.abs(hash) % 100000).padStart(5, '0');
+        };
 
         // 🟢 ฟังก์ชันสร้าง PromptPay QR (มาตรฐาน EMVCo)
         function formatTLV(tag, value) {
@@ -1098,7 +1141,7 @@
             if (docSnapDel.exists()) {
                 deliverySettings = docSnapDel.data();
             } else {
-                deliverySettings = { fee: 10, radius: 15, lat: 13.7563, lng: 100.5018 };
+                deliverySettings = { fee: 10, radius: 15, freeRadius: 0, lat: 13.7563, lng: 100.5018 };
             }
         }
         loadShopSettings();
@@ -1259,7 +1302,7 @@
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl shrink-0">
                             <div>
                                 <p class="font-bold text-lg">โต๊ะ ${order.table || 'ไม่ระบุ'}</p>
-                                <p class="text-[10px] text-slate-400 font-mono">ID: ${order.id}</p>
+                                <p class="text-[10px] text-slate-400 font-mono">ID: ${window.formatOrderID(order.id)}</p>
                             </div>
                             <span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-[10px] uppercase">Dine-In</span>
                         </div>
@@ -1348,7 +1391,7 @@
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-xl shrink-0">
                             <div class="flex-1 pr-2">
                                 <p class="font-bold text-lg truncate">${order.customer || 'ลูกค้า'}</p>
-                                <p class="text-[10px] text-slate-500 font-mono">ID: ${order.id}</p>
+                                <p class="text-[10px] text-slate-500 font-mono">ID: ${window.formatOrderID(order.id)}</p>
                                 <p class="text-xs text-slate-600 mt-1"><i class="fas fa-map-marker-alt text-rose-400"></i> ${order.address || 'ไม่ระบุ'}</p>
                                 ${mapBtn}
                             </div>
@@ -1362,6 +1405,7 @@
                             ${itemsHTML}
                             ${paymentHTML}
                             ${order.riderName ? `<div class="mt-3 p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700"><p class="font-bold"><i class="fas fa-motorcycle"></i> ข้อมูลผู้จัดส่ง:</p><p>${order.riderName} (${order.riderPhone || '-'})</p></div>` : ''}
+                            <button onclick="window.viewOrderFullscreen('${order.id}')" class="w-full mt-3 bg-slate-100 text-slate-600 font-bold text-xs py-2 rounded-lg hover:bg-slate-200 transition-colors"><i class="fas fa-expand-alt mr-1"></i> ดูรายละเอียดแบบเต็มจอ</button>
                         </div>
                         <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl shrink-0">
                             ${actionBtn}
@@ -1385,6 +1429,7 @@
         window.openDeliverySettingsModal = () => {
             document.getElementById('setting-delivery-fee').value = deliverySettings.fee || 10;
             document.getElementById('setting-delivery-radius').value = deliverySettings.radius || 15;
+            document.getElementById('setting-delivery-free-radius').value = deliverySettings.freeRadius || 0;
             
             if(deliverySettings.lat) document.getElementById('store-lat-display').innerText = deliverySettings.lat.toFixed(6);
             if(deliverySettings.lng) document.getElementById('store-lng-display').innerText = deliverySettings.lng.toFixed(6);
@@ -1455,6 +1500,7 @@
         window.saveDeliverySettings = async () => {
             const fee = parseFloat(document.getElementById('setting-delivery-fee').value) || 0;
             const radius = parseFloat(document.getElementById('setting-delivery-radius').value) || 0;
+            const freeRadius = parseFloat(document.getElementById('setting-delivery-free-radius').value) || 0;
             const lat = deliverySettings.lat || 13.7563;
             const lng = deliverySettings.lng || 100.5018;
 
@@ -1463,7 +1509,7 @@
             btn.innerHTML = 'กำลังบันทึก...'; btn.disabled = true;
 
             try {
-                deliverySettings = { fee, radius, lat, lng };
+                deliverySettings = { fee, radius, freeRadius, lat, lng };
                 await setDoc(doc(db, "settings", "delivery"), deliverySettings, { merge: true });
                 window.showCustomAlert('บันทึกการตั้งค่าจัดส่งและพิกัดร้านค้าเรียบร้อยแล้ว');
                 closeDeliverySettingsModal();
@@ -1554,7 +1600,7 @@
                         <div>
                             <span class="px-3 py-1 bg-${color}-500/20 text-${color}-400 font-bold rounded text-sm uppercase mb-3 inline-block">${isDel ? 'Delivery' : 'Dine-In'}</span>
                             <h1 class="text-5xl font-bold text-white tracking-wide">${isDel ? (order.customer || 'ลูกค้า') : `โต๊ะ ${order.table || 'Walk-in'}`}</h1>
-                            <p class="text-slate-400 mt-3 text-lg font-mono">รหัสอ้างอิง: ${order.id}</p>
+                            <p class="text-slate-400 mt-3 text-lg font-mono">รหัสอ้างอิง: ${window.formatOrderID(order.id)}</p>
                             ${isDel && order.address ? `<p class="text-slate-300 mt-2 text-lg"><i class="fas fa-map-marker-alt text-rose-400"></i> ${order.address}</p>` : ''}
                             ${isDel && order.riderName ? `<p class="text-indigo-300 mt-2 text-lg"><i class="fas fa-motorcycle"></i> ผู้จัดส่ง: ${order.riderName} (${order.riderPhone||'-'})</p>` : ''}
                         </div>
@@ -1662,6 +1708,7 @@
                 document.getElementById('menu-price').value = m.price;
                 document.getElementById('menu-category').value = m.category || '';
                 document.getElementById('menu-stock').value = (m.stock !== undefined && m.stock !== null) ? m.stock : '';
+                document.getElementById('menu-badge').value = m.badge || '';
                 document.getElementById('menu-img-url').value = m.img;
                 
                 if(m.img) {
@@ -1680,6 +1727,7 @@
                 document.getElementById('menu-price').value = '';
                 document.getElementById('menu-category').value = '';
                 document.getElementById('menu-stock').value = '';
+                document.getElementById('menu-badge').value = '';
                 document.getElementById('menu-img-url').value = '';
                 document.getElementById('img-preview').classList.add('hidden');
                 document.getElementById('upload-status').innerText = 'รองรับ JPG, PNG (ขนาดไม่เกิน 2MB)';
@@ -1742,6 +1790,7 @@
             const price = parseFloat(document.getElementById('menu-price').value);
             const category = document.getElementById('menu-category').value.trim();
             const stockInput = document.getElementById('menu-stock').value;
+            const badge = document.getElementById('menu-badge').value;
             const stock = stockInput === '' ? null : parseInt(stockInput);
             const imgUrl = document.getElementById('menu-img-url').value || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'; 
             
@@ -1757,7 +1806,7 @@
             })).filter(g => g.choices.length > 0);
 
             const menuData = { 
-                name, price, category, stock, img: imgUrl, options: cleanOptions, updated_at: new Date() 
+                name, price, category, stock, badge, img: imgUrl, options: cleanOptions, updated_at: new Date() 
             };
 
             try {
@@ -1809,9 +1858,14 @@
             filtered.forEach((m) => {
                 const stockDisplay = (m.stock !== null && m.stock !== undefined) ? m.stock : 'ไม่จำกัด';
                 const catDisplay = m.category || 'ไม่มีหมวดหมู่';
+                const badgeHtml = m.badge ? `<span class="absolute top-2 left-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">${m.badge}</span>` : '';
+
                 container.innerHTML += `
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
-                        <img src="${m.img}" class="w-full h-32 object-cover bg-slate-200">
+                        <div class="relative w-full h-32 bg-slate-200 shrink-0">
+                            ${badgeHtml}
+                            <img src="${m.img}" class="w-full h-full object-cover">
+                        </div>
                         <div class="p-4 flex-1 flex flex-col">
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="font-bold leading-tight">${m.name}</h3>
@@ -2019,7 +2073,7 @@
                     document.getElementById('banner-img-preview').classList.remove('hidden');
                 }
                 document.getElementById('banner-detail').value = b.detail || '';
-                document.getElementById('banner-timer').value = b.timer || 1;
+                document.getElementById('banner-timer').value = b.timer || 3;
                 document.getElementById('banner-start').value = b.startDate || '';
                 document.getElementById('banner-end').value = b.endDate || '';
             } else {
@@ -2029,7 +2083,7 @@
                 document.getElementById('banner-img-preview').classList.add('hidden');
                 document.getElementById('banner-img-upload').value = '';
                 document.getElementById('banner-detail').value = '';
-                document.getElementById('banner-timer').value = 1;
+                document.getElementById('banner-timer').value = 3;
                 document.getElementById('banner-start').value = '';
                 document.getElementById('banner-end').value = '';
             }
@@ -2068,7 +2122,7 @@
             const id = document.getElementById('banner-id').value;
             const imgUrl = document.getElementById('banner-img-url').value;
             const detail = document.getElementById('banner-detail').value.trim();
-            const timer = parseInt(document.getElementById('banner-timer').value) || 1;
+            const timer = parseInt(document.getElementById('banner-timer').value) || 3;
             const startDate = document.getElementById('banner-start').value;
             const endDate = document.getElementById('banner-end').value;
 
@@ -2112,8 +2166,8 @@
                 adminBanners.push(b);
                 container.innerHTML += `
                     <div class="bg-white rounded-xl border border-pink-100 p-3 shadow-sm flex flex-col relative overflow-hidden shrink-0">
-                        <img src="${b.imgUrl}" class="w-full object-cover rounded-lg mb-2 border border-slate-100" style="aspect-ratio: 29.7/21;">
-                        <p class="text-xs text-slate-500 mb-1"><i class="fas fa-clock"></i> เลื่อนทุก: ${b.timer} นาที</p>
+                        <img src="${b.imgUrl}" class="w-full object-cover rounded-lg mb-2 border border-slate-100" style="aspect-ratio: 16/5;">
+                        <p class="text-xs text-slate-500 mb-1"><i class="fas fa-clock"></i> เลื่อนทุก: ${b.timer} วินาที</p>
                         <p class="text-xs text-slate-500 mb-3 truncate">รายละเอียด: ${b.detail || '-'}</p>
                         <div class="mt-auto pt-2 flex justify-between items-center border-t border-slate-100">
                             <div class="flex gap-2 w-full justify-end">
@@ -2172,13 +2226,15 @@
             container.innerHTML = filtered.map(m => {
                 const stockDisplay = (m.stock !== null && m.stock !== undefined) ? m.stock : '∞';
                 const isOutOfStock = m.stock === 0;
+                const badgeHtml = m.badge ? `<span class="absolute top-2 left-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10">${m.badge}</span>` : '';
                 
                 return `
                 <div onclick="clickPosMenu('${m.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer relative ${isOutOfStock ? 'opacity-50 grayscale' : 'active:scale-95'} flex flex-col h-full shrink-0">
-                    ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 z-10 flex items-center justify-center"><span class="bg-rose-500 text-white px-3 py-1 font-bold rounded-lg text-sm">หมด</span></div>' : ''}
+                    ${isOutOfStock ? '<div class="absolute inset-0 bg-white/50 z-20 flex items-center justify-center"><span class="bg-rose-500 text-white px-3 py-1 font-bold rounded-lg text-sm">หมด</span></div>' : ''}
                     <div class="h-32 w-full relative shrink-0">
+                        ${badgeHtml}
                         <img src="${m.img}" class="w-full h-full object-cover">
-                        <div class="absolute bottom-2 right-2 bg-slate-900/80 text-white px-2 py-1 rounded text-[10px] font-bold"><i class="fas fa-box"></i> ${stockDisplay}</div>
+                        <div class="absolute bottom-2 right-2 bg-slate-900/80 text-white px-2 py-1 rounded text-[10px] font-bold z-10"><i class="fas fa-box"></i> ${stockDisplay}</div>
                     </div>
                     <div class="p-3 flex-1 flex flex-col justify-between">
                         <h3 class="font-bold text-sm text-slate-800 leading-tight mb-2 line-clamp-2">${m.name}</h3>
@@ -2869,8 +2925,8 @@
 
             document.getElementById('rcpt-footer-msg').innerText = receiptSettings.footerMsg || 'ขอบคุณที่ใช้บริการ';
 
-            // แสดงหมายเลขออเดอร์เต็มรูปแบบ
-            document.getElementById('rcpt-order-id').innerText = order.id;
+            // แสดงหมายเลขออเดอร์ที่จัดฟอร์แมตแล้ว
+            document.getElementById('rcpt-order-id').innerText = window.formatOrderID(order.id);
             const tDate = order.paid_at?.toDate ? order.paid_at.toDate() : (order.timestamp?.toDate ? order.timestamp.toDate() : new Date());
             document.getElementById('rcpt-date').innerText = tDate.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
 
@@ -2906,7 +2962,7 @@
                 document.getElementById('rcpt-payment-details').classList.add('hidden');
             }
 
-            JsBarcode("#receipt-barcode", order.id.substring(0, 12), {
+            JsBarcode("#receipt-barcode", window.formatOrderID(order.id), {
                 format: "CODE128",
                 width: 1.5,
                 height: 30,
@@ -2947,7 +3003,8 @@
             const filteredOrders = allOrdersForAnalytics.filter(o => {
                 const t = o.timestamp?.toDate ? o.timestamp.toDate() : new Date(o.timestamp || o.paid_at || Date.now());
                 const isDateMatch = period === 'all' || (t >= start && t <= now);
-                const isSearchMatch = !searchQuery || o.id.toLowerCase().includes(searchQuery) || (o.table || '').toLowerCase().includes(searchQuery);
+                const formattedId = window.formatOrderID(o.id).toLowerCase();
+                const isSearchMatch = !searchQuery || formattedId.includes(searchQuery) || (o.table || '').toLowerCase().includes(searchQuery);
                 return isDateMatch && isSearchMatch;
             });
 
@@ -2972,7 +3029,7 @@
                 return `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-5 text-sm text-slate-600">${dateStr}</td>
-                    <td class="py-3 px-5 text-sm font-medium text-slate-800"><i class="fas fa-hashtag text-slate-300 mr-1"></i>${o.id.substring(0,8)}...</td>
+                    <td class="py-3 px-5 text-sm font-medium text-slate-800"><i class="fas fa-hashtag text-slate-300 mr-1"></i>${window.formatOrderID(o.id)}</td>
                     <td class="py-3 px-5 text-sm">${typeStr}</td>
                     <td class="py-3 px-5 text-sm font-medium">${payMethods[o.paymentMethod] || '-'}</td>
                     <td class="py-3 px-5 text-sm font-bold text-slate-800 text-right">฿${parseFloat(o.total || 0).toLocaleString()}</td>
