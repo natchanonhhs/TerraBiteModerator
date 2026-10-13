@@ -44,6 +44,9 @@
 </head>
 <body class="text-slate-800 flex h-screen h-[100dvh] w-full overflow-hidden relative">
 
+    <!-- คอนเทนเนอร์สำหรับไฟกะพริบแจ้งเตือนเมื่อลูกค้าเรียกโต๊ะ -->
+    <div id="table-call-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[400] flex flex-col gap-3 w-[90%] max-w-md pointer-events-none"></div>
+
     <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col z-20 shadow-xl hidden md:flex shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-950">
             <h1 class="text-xl font-bold text-emerald-400">Terra Bite</h1>
@@ -369,6 +372,22 @@
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-50 rounded-full flex justify-center items-center"><i class="fas fa-fire text-2xl text-rose-200"></i></div>
                         <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider z-10">เมนูยอดนิยม</p>
                         <h3 class="text-lg sm:text-xl font-bold text-rose-500 z-10 truncate" id="stat-top-item">-</h3>
+                    </div>
+                </div>
+
+                <!-- สรุปแยก ทานที่ร้าน vs เดลิเวอรี่ -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-xl"><i class="fas fa-chair"></i></div>
+                            <div><p class="text-xs text-slate-500 font-bold">ยอดขาย (ทานที่ร้าน / สั่งกลับ)</p><h4 class="text-lg font-bold text-emerald-700" id="stat-dinein-sales">฿0.00 <span class="text-xs font-normal text-slate-500 ml-1">(0 ออเดอร์)</span></h4></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-rose-200 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center text-xl"><i class="fas fa-motorcycle"></i></div>
+                            <div><p class="text-xs text-slate-500 font-bold">ยอดขาย (เดลิเวอรี่)</p><h4 class="text-lg font-bold text-rose-700" id="stat-delivery-sales">฿0.00 <span class="text-xs font-normal text-slate-500 ml-1">(0 ออเดอร์)</span></h4></div>
+                        </div>
                     </div>
                 </div>
 
@@ -887,10 +906,9 @@
         </div>
     </div>
 
-    <!-- 🟢 Custom Alerts & Prompts Modals (ระบบ Popup ของเว็บ) -->
+    <!-- 🟢 Custom Alerts & Prompts Modals (ระบบ Popup ของเว็บ - นำรูปไอคอนออก) -->
     <div id="custom-alert" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-alert-box">
-            <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fas fa-info-circle"></i></div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">แจ้งให้ทราบ</h3>
             <p id="custom-alert-msg" class="text-sm text-slate-600 mb-6"></p>
             <button onclick="closeCustomAlert()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors">รับทราบ</button>
@@ -899,7 +917,6 @@
 
     <div id="custom-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-confirm-box">
-            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fas fa-question-circle"></i></div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">ยืนยันการดำเนินการ</h3>
             <p id="custom-confirm-msg" class="text-sm text-slate-600 mb-6"></p>
             <div class="flex gap-3">
@@ -946,7 +963,33 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 🟢 ฟังก์ชันจัดรูปแบบหมายเลขออเดอร์ให้ขึ้นต้นด้วย AD ตามด้วยเลข 5 หลัก
+        // 🟢 ระบบเสียง (Audio & Speech Synthesis)
+        const cashierSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3'); 
+        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); 
+
+        const speakText = (text) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        // เพื่อปลดล็อกการเล่นเสียงในบราวเซอร์อัตโนมัติ (ผู้ใช้ต้องคลิกหน้าจอครั้งแรก)
+        let audioInitialized = false;
+        document.body.addEventListener('click', () => {
+            if(!audioInitialized) {
+                const u = new SpeechSynthesisUtterance('');
+                u.volume = 0; window.speechSynthesis.speak(u);
+                cashierSound.volume = 0; cashierSound.play().then(()=>cashierSound.pause()).catch(()=>{});
+                bellSound.volume = 0; bellSound.play().then(()=>bellSound.pause()).catch(()=>{});
+                setTimeout(() => { cashierSound.volume = 1; bellSound.volume = 1; }, 100);
+                audioInitialized = true;
+            }
+        }, { once: true });
+
+
+        // 🟢 ฟังก์ชันจัดรูปแบบหมายเลขออเดอร์ให้ขึ้นต้นด้วย AD ตามด้วยเลข 5 หลัก (คงเดิม)
         window.formatOrderID = (id) => {
             if (!id) return 'AD00000';
             if (id.startsWith('AD')) return id;
@@ -1338,7 +1381,6 @@
             }
 
             activeDeliveryOrders.forEach(order => {
-                // แสดงรายการอาหารทั้งหมด ไม่ย่อ
                 let itemsHTML = (order.items || []).map(item => `
                     <div class="py-1.5 flex flex-col text-xs text-slate-700 border-b border-slate-100 last:border-0">
                         <div class="flex justify-between">
@@ -1366,10 +1408,8 @@
                     actionBtn = `<button onclick="updateDeliveryStatus('${order.id}', 'เสร็จสิ้น')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ยืนยันการจัดส่งสำเร็จ</button>`;
                 }
 
-                // สร้างลิงก์ไปเปิดแผนที่ Google Maps โดยใช้พิกัดหากมี
                 const mapBtn = order.location ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${order.location.lat},${order.location.lng}" target="_blank" class="text-[11px] bg-blue-50 text-blue-600 px-2 py-1 rounded mt-2 inline-block font-bold border border-blue-200 hover:bg-blue-100"><i class="fas fa-location-arrow"></i> เปิดแผนที่นำทาง</a>` : '';
 
-                // แสดงรายละเอียดการชำระเงินและสลิป
                 let paymentHTML = '';
                 if (order.paymentMethod === 'transfer' || order.paymentMethod === 'qr') {
                     paymentHTML = `
@@ -1640,6 +1680,8 @@
             document.getElementById('order-fullscreen-modal').classList.remove('flex');
         };
 
+        // 🟢 ตรวจจับออเดอร์ใหม่และเสียงเตือน
+        let isInitialOrderLoad = true;
         const qOrder = query(collection(db, "orders"), orderBy("timestamp", "desc"));
         onSnapshot(qOrder, (snapshot) => {
             const el = document.getElementById('db-status-order');
@@ -1648,6 +1690,22 @@
             activeDeliveryOrders = [];
             allOrdersForAnalytics = []; 
             
+            // แจ้งเตือนเสียงเมื่อมีออเดอร์ใหม่เข้ามา
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    if (!isInitialOrderLoad && data.status !== 'เสร็จสิ้น' && data.status !== 'รอชำระเงิน') {
+                        if (data.type === 'delivery') {
+                            const payType = (data.paymentMethod === 'cod') ? 'เก็บเงินปลายทาง' : 'ชำระเงินแล้ว';
+                            speakText(`มีออเดอร์เดลิเวอรี่ 1 รายการ ${payType}`);
+                        } else {
+                            speakText(`มีออเดอร์ใหม่ โต๊ะ ${data.table || 'ลูกค้าทั่วไป'}`);
+                        }
+                    }
+                }
+            });
+            isInitialOrderLoad = false;
+
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const order = { id: docSnap.id, ...data };
@@ -1664,30 +1722,43 @@
             });
             
             const ordersView = document.getElementById('view-orders');
-            if (ordersView && !ordersView.classList.contains('hidden')) {
-                window.renderOrders();
-            }
-
+            if (ordersView && !ordersView.classList.contains('hidden')) window.renderOrders();
             const deliveryView = document.getElementById('view-delivery');
-            if (deliveryView && !deliveryView.classList.contains('hidden')) {
-                window.renderDeliveryOrders();
-            }
-
+            if (deliveryView && !deliveryView.classList.contains('hidden')) window.renderDeliveryOrders();
             const analyticsView = document.getElementById('view-analytics');
-            if (analyticsView && !analyticsView.classList.contains('hidden')) {
-                window.renderAnalytics();
-            }
-
+            if (analyticsView && !analyticsView.classList.contains('hidden')) window.renderAnalytics();
             const historyView = document.getElementById('view-history');
-            if (historyView && !historyView.classList.contains('hidden')) {
-                window.renderHistory();
-            }
-
+            if (historyView && !historyView.classList.contains('hidden')) window.renderHistory();
             const pendingModal = document.getElementById('pos-pending-bills-modal');
-            if (pendingModal && !pendingModal.classList.contains('hidden')) {
-                window.openPendingBillsModal(); 
-            }
+            if (pendingModal && !pendingModal.classList.contains('hidden')) window.openPendingBillsModal(); 
         });
+
+        // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ (ไฟกะพริบและเสียงกริ่ง)
+        const qCalls = query(collection(db, "table_calls"));
+        onSnapshot(qCalls, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    if(audioInitialized) bellSound.play().catch(e=>console.log(e));
+                    window.renderTableCall(change.doc.id, data.table || 'ไม่ระบุ');
+                }
+                if (change.type === "removed") {
+                    const el = document.getElementById(`call-${change.doc.id}`);
+                    if(el) el.remove();
+                }
+            });
+        });
+
+        window.renderTableCall = (id, tableNo) => {
+            const container = document.getElementById('table-call-container');
+            if(document.getElementById(`call-${id}`)) return; 
+            const div = document.createElement('div');
+            div.id = `call-${id}`;
+            div.className = "bg-rose-600 text-white px-6 py-4 rounded-xl font-bold shadow-2xl animate-pulse cursor-pointer border-4 border-rose-400 text-lg text-center pointer-events-auto flex items-center justify-center gap-3";
+            div.innerHTML = `<i class="fas fa-bell text-2xl"></i> โต๊ะ ${tableNo} เรียกพนักงาน! (กดเพื่อปิด)`;
+            div.onclick = async () => { await deleteDoc(doc(db, "table_calls", id)); };
+            container.appendChild(div);
+        }
 
         window.updateOrderStatus = (orderId) => {
             window.showCustomConfirm('ยืนยันดำเนินการเสร็จเรียบร้อย?\n(ข้อมูลจะถูกส่งไปยังระบบแคชเชียร์)', async () => {
@@ -2821,6 +2892,9 @@
             btnPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...'; btnPrint.disabled = true;
             btnNoPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...'; btnNoPrint.disabled = true;
 
+            // 🟢 เสียงแคชเชียร์
+            if (audioInitialized) cashierSound.play().catch(e=>console.log(e));
+
             try {
                 for (const item of posCart) {
                     const menu = adminMenus.find(m => m.name === item.name);
@@ -2951,8 +3025,8 @@
             document.getElementById('rcpt-discount').innerText = disc > 0 ? `-${disc.toLocaleString()}` : '0';
             document.getElementById('rcpt-total').innerText = finalTotal.toLocaleString();
 
-            const payMethods = { 'cash': 'เงินสด', 'qr': 'สแกน QR / โอน', 'card': 'บัตรเครดิต', 'cod': 'เก็บปลายทาง' };
-            document.getElementById('rcpt-pay-method').innerText = payMethods[order.paymentMethod] || 'ไม่ระบุ';
+            const payMethodsReceipt = { 'cash': 'เงินสด', 'qr': 'สแกนจ่าย (PromptPay/โอน)', 'card': 'บัตรเครดิต', 'cod': 'เก็บเงินปลายทาง', 'transfer': 'โอนเงิน' };
+            document.getElementById('rcpt-pay-method').innerText = payMethodsReceipt[order.paymentMethod] || order.paymentMethod || 'ไม่ระบุ';
             
             if (order.paymentMethod === 'cash' && order.receivedAmount !== undefined) {
                 document.getElementById('rcpt-received').innerText = parseFloat(order.receivedAmount).toLocaleString();
@@ -3019,7 +3093,14 @@
                 return;
             }
 
-            const payMethods = { 'cash': '<span class="text-emerald-600"><i class="fas fa-money-bill"></i> เงินสด</span>', 'qr': '<span class="text-blue-600"><i class="fas fa-qrcode"></i> โอน / QR</span>', 'card': '<span class="text-purple-600"><i class="fas fa-credit-card"></i> บัตร</span>', 'cod': '<span class="text-amber-600"><i class="fas fa-motorcycle"></i> COD</span>' };
+            // แสดงประเภทการจ่ายให้ครบตามโจทย์ ไม่ปล่อยว่าง
+            const payMethods = { 
+                'cash': '<span class="text-emerald-600 font-bold"><i class="fas fa-money-bill"></i> เงินสด</span>', 
+                'qr': '<span class="text-blue-600 font-bold"><i class="fas fa-qrcode"></i> สแกนจ่าย (QR/โอน)</span>', 
+                'card': '<span class="text-purple-600 font-bold"><i class="fas fa-credit-card"></i> บัตรเครดิต</span>', 
+                'cod': '<span class="text-amber-600 font-bold"><i class="fas fa-motorcycle"></i> เก็บเงินปลายทาง (COD)</span>',
+                'transfer': '<span class="text-blue-600 font-bold"><i class="fas fa-university"></i> โอนเงิน</span>'
+            };
 
             container.innerHTML = filteredOrders.map(o => {
                 const t = o.timestamp?.toDate ? o.timestamp.toDate() : new Date(o.timestamp || o.paid_at || Date.now());
@@ -3094,6 +3175,11 @@
 
             let totalSales = 0;
             let totalOrders = filteredOrders.length;
+            
+            // เพิ่มการแยกประเภทเดลิเวอรี่และทานที่ร้าน
+            let dineInSales = 0, dineInOrders = 0;
+            let deliverySales = 0, deliveryOrders = 0;
+
             let itemMap = {};
             let optionMap = {};
             let chartDataMap = {};
@@ -3104,6 +3190,14 @@
             filteredOrders.forEach(o => {
                 const orderTotal = parseFloat(o.total) || 0;
                 totalSales += orderTotal;
+
+                if (o.type === 'delivery') {
+                    deliverySales += orderTotal;
+                    deliveryOrders++;
+                } else {
+                    dineInSales += orderTotal;
+                    dineInOrders++;
+                }
                 
                 if(o.paymentMethod === 'cash') totalCash += orderTotal;
                 else if(o.paymentMethod === 'qr' || o.paymentMethod === 'transfer') totalQR += orderTotal;
@@ -3151,6 +3245,10 @@
             document.getElementById('stat-total-orders').innerText = totalOrders.toLocaleString();
             document.getElementById('stat-avg-order').innerText = `฿${avgOrderValue.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('stat-top-item').innerText = topItem.name;
+
+            // แสดงยอดแยกระหว่าง ทานที่ร้าน กับ เดลิเวอรี่
+            document.getElementById('stat-dinein-sales').innerHTML = `฿${dineInSales.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal text-slate-500 ml-1">(${dineInOrders} ออเดอร์)</span>`;
+            document.getElementById('stat-delivery-sales').innerHTML = `฿${deliverySales.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal text-slate-500 ml-1">(${deliveryOrders} ออเดอร์)</span>`;
 
             document.getElementById('stat-cash-total').innerText = `฿${totalCash.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
             document.getElementById('stat-qr-total').innerText = `฿${totalQR.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
