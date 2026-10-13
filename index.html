@@ -906,7 +906,7 @@
         </div>
     </div>
 
-    <!-- 🟢 Custom Alerts & Prompts Modals (ระบบ Popup ของเว็บ - นำรูปไอคอนออก) -->
+    <!-- 🟢 Custom Alerts & Prompts Modals (ระบบ Popup ของเว็บ) -->
     <div id="custom-alert" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform scale-95 transition-transform" id="custom-alert-box">
             <h3 class="text-lg font-bold text-slate-800 mb-2">แจ้งให้ทราบ</h3>
@@ -963,27 +963,42 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 🟢 ระบบเสียง (Audio & Speech Synthesis)
-        const cashierSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3'); 
-        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); 
+        // ==========================================
+        // 🟢 ระบบเสียง (Audio Notifications) จากไฟล์ที่อัปโหลด
+        // ==========================================
+        const audioCashier = new Audio('แคชเชียร์.mp3');
+        const audioDeliveryPaid = new Audio('ชำระเงินแล้ว.mp3');
+        const audioDeliveryCOD = new Audio('เก็บเงินปลายทาง.mp3');
 
-        const speakText = (text) => {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'th-TH';
-                window.speechSynthesis.speak(utterance);
-            }
+        const audioTableMap = {
+            '1': new Audio('โต๊ะที่ 1.mp3'),
+            '2': new Audio('โต๊ะที่ 2.mp3'),
+            '3': new Audio('โต๊ะที่ 3.mp3'),
+            '4': new Audio('โต๊ะที่ 4.mp3'),
+            '5': new Audio('โต๊ะที่ 5.mp3'),
+            '6': new Audio('โต๊ะที่ 6.mp3')
         };
+        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); // กริ่งเรียกพนักงาน
 
         // เพื่อปลดล็อกการเล่นเสียงในบราวเซอร์อัตโนมัติ (ผู้ใช้ต้องคลิกหน้าจอครั้งแรก)
         let audioInitialized = false;
         document.body.addEventListener('click', () => {
             if(!audioInitialized) {
-                const u = new SpeechSynthesisUtterance('');
-                u.volume = 0; window.speechSynthesis.speak(u);
-                cashierSound.volume = 0; cashierSound.play().then(()=>cashierSound.pause()).catch(()=>{});
+                audioCashier.volume = 0; audioCashier.play().then(()=>audioCashier.pause()).catch(()=>{});
+                audioDeliveryPaid.volume = 0; audioDeliveryPaid.play().then(()=>audioDeliveryPaid.pause()).catch(()=>{});
+                audioDeliveryCOD.volume = 0; audioDeliveryCOD.play().then(()=>audioDeliveryCOD.pause()).catch(()=>{});
+                Object.values(audioTableMap).forEach(audio => {
+                    audio.volume = 0; audio.play().then(()=>audio.pause()).catch(()=>{});
+                });
                 bellSound.volume = 0; bellSound.play().then(()=>bellSound.pause()).catch(()=>{});
-                setTimeout(() => { cashierSound.volume = 1; bellSound.volume = 1; }, 100);
+
+                setTimeout(() => { 
+                    audioCashier.volume = 1; 
+                    audioDeliveryPaid.volume = 1; 
+                    audioDeliveryCOD.volume = 1; 
+                    Object.values(audioTableMap).forEach(audio => audio.volume = 1);
+                    bellSound.volume = 1; 
+                }, 100);
                 audioInitialized = true;
             }
         }, { once: true });
@@ -1690,16 +1705,25 @@
             activeDeliveryOrders = [];
             allOrdersForAnalytics = []; 
             
-            // แจ้งเตือนเสียงเมื่อมีออเดอร์ใหม่เข้ามา
+            // 🟢 ระบบเล่นเสียงเมื่อมีออเดอร์ใหม่เข้ามา
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     if (!isInitialOrderLoad && data.status !== 'เสร็จสิ้น' && data.status !== 'รอชำระเงิน') {
                         if (data.type === 'delivery') {
-                            const payType = (data.paymentMethod === 'cod') ? 'เก็บเงินปลายทาง' : 'ชำระเงินแล้ว';
-                            speakText(`มีออเดอร์เดลิเวอรี่ 1 รายการ ${payType}`);
+                            if (data.paymentMethod === 'cod') {
+                                if(audioInitialized) audioDeliveryCOD.play().catch(e=>console.log(e));
+                            } else {
+                                if(audioInitialized) audioDeliveryPaid.play().catch(e=>console.log(e));
+                            }
                         } else {
-                            speakText(`มีออเดอร์ใหม่ โต๊ะ ${data.table || 'ลูกค้าทั่วไป'}`);
+                            // ออเดอร์ทานที่ร้าน (ระบุโต๊ะ)
+                            const tableNo = String(data.table).trim();
+                            if (audioTableMap[tableNo]) {
+                                if(audioInitialized) audioTableMap[tableNo].play().catch(e=>console.log(e));
+                            } else {
+                                if(audioInitialized) bellSound.play().catch(e=>console.log(e));
+                            }
                         }
                     }
                 }
@@ -2892,8 +2916,8 @@
             btnPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...'; btnPrint.disabled = true;
             btnNoPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...'; btnNoPrint.disabled = true;
 
-            // 🟢 เสียงแคชเชียร์
-            if (audioInitialized) cashierSound.play().catch(e=>console.log(e));
+            // 🟢 เสียงแคชเชียร์ เมื่อกดปุ่มยืนยัน
+            if (audioInitialized) audioCashier.play().catch(e=>console.log(e));
 
             try {
                 for (const item of posCart) {
@@ -3093,7 +3117,6 @@
                 return;
             }
 
-            // แสดงประเภทการจ่ายให้ครบตามโจทย์ ไม่ปล่อยว่าง
             const payMethods = { 
                 'cash': '<span class="text-emerald-600 font-bold"><i class="fas fa-money-bill"></i> เงินสด</span>', 
                 'qr': '<span class="text-blue-600 font-bold"><i class="fas fa-qrcode"></i> สแกนจ่าย (QR/โอน)</span>', 
@@ -3176,7 +3199,6 @@
             let totalSales = 0;
             let totalOrders = filteredOrders.length;
             
-            // เพิ่มการแยกประเภทเดลิเวอรี่และทานที่ร้าน
             let dineInSales = 0, dineInOrders = 0;
             let deliverySales = 0, deliveryOrders = 0;
 
@@ -3246,7 +3268,6 @@
             document.getElementById('stat-avg-order').innerText = `฿${avgOrderValue.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('stat-top-item').innerText = topItem.name;
 
-            // แสดงยอดแยกระหว่าง ทานที่ร้าน กับ เดลิเวอรี่
             document.getElementById('stat-dinein-sales').innerHTML = `฿${dineInSales.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal text-slate-500 ml-1">(${dineInOrders} ออเดอร์)</span>`;
             document.getElementById('stat-delivery-sales').innerHTML = `฿${deliverySales.toLocaleString('th-TH', {minimumFractionDigits: 2})} <span class="text-xs font-normal text-slate-500 ml-1">(${deliveryOrders} ออเดอร์)</span>`;
 
