@@ -52,19 +52,23 @@
             <h1 class="text-xl font-bold text-emerald-400">Terra Bite</h1>
             <p class="text-xs text-slate-500 mt-1">POS & Management</p>
         </div>
-        <div class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-1">
+        <div class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-1 relative">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2">ส่วนการดำเนินงาน</p>
             
-            <button onclick="switchView('orders')" id="nav-orders" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
+            <button onclick="switchView('orders')" id="nav-orders" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left relative">
                 <i class="fas fa-bell w-5 text-center"></i> ออเดอร์กำลังทำ
+                <!-- เพิ่ม Badge สำหรับออเดอร์กำลังทำ -->
+                <span id="badge-orders" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
             </button>
 
             <button onclick="switchView('pos')" id="nav-pos" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
                 <i class="fas fa-cash-register w-5 text-center"></i> แคชเชียร์ (POS)
             </button>
             
-            <button onclick="switchView('delivery')" id="nav-delivery" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left">
+            <button onclick="switchView('delivery')" id="nav-delivery" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left relative">
                 <i class="fas fa-motorcycle w-5 text-center"></i> ระบบจัดการจัดส่ง
+                <!-- เพิ่ม Badge สำหรับระบบจัดส่ง -->
+                <span id="badge-delivery" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
             </button>
 
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">ส่วนการจัดการหลังบ้าน</p>
@@ -970,13 +974,20 @@
         const audioDeliveryPaid = new Audio('ชำระเงินแล้ว.mp3');
         const audioDeliveryCOD = new Audio('เก็บเงินปลายทาง.mp3');
 
+        // อัปเดต Map ให้รองรับทั้งแบบเลขโดดและเลขที่มี 0 นำหน้า
         const audioTableMap = {
             '1': new Audio('โต๊ะที่ 1.mp3'),
+            '01': new Audio('โต๊ะที่ 1.mp3'),
             '2': new Audio('โต๊ะที่ 2.mp3'),
+            '02': new Audio('โต๊ะที่ 2.mp3'),
             '3': new Audio('โต๊ะที่ 3.mp3'),
+            '03': new Audio('โต๊ะที่ 3.mp3'),
             '4': new Audio('โต๊ะที่ 4.mp3'),
+            '04': new Audio('โต๊ะที่ 4.mp3'),
             '5': new Audio('โต๊ะที่ 5.mp3'),
-            '6': new Audio('โต๊ะที่ 6.mp3')
+            '05': new Audio('โต๊ะที่ 5.mp3'),
+            '6': new Audio('โต๊ะที่ 6.mp3'),
+            '06': new Audio('โต๊ะที่ 6.mp3')
         };
         const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); // กริ่งเรียกพนักงาน
 
@@ -1004,7 +1015,7 @@
         }, { once: true });
 
 
-        // 🟢 ฟังก์ชันจัดรูปแบบหมายเลขออเดอร์ให้ขึ้นต้นด้วย AD ตามด้วยเลข 5 หลัก (คงเดิม)
+        // 🟢 ฟังก์ชันจัดรูปแบบหมายเลขออเดอร์ให้ขึ้นต้นด้วย AD ตามด้วยเลข 5 หลัก
         window.formatOrderID = (id) => {
             if (!id) return 'AD00000';
             if (id.startsWith('AD')) return id;
@@ -1263,7 +1274,8 @@
                     viewEl.classList.remove('flex', 'flex-row', 'flex-col');
                 }
                 if(navEl) {
-                    navEl.className = "w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-sm transition-all mt-2 text-left";
+                    navEl.classList.remove('bg-emerald-600/20', 'text-emerald-400', 'border', 'border-emerald-500/20', 'font-medium');
+                    navEl.classList.add('hover:bg-slate-800', 'text-slate-400', 'hover:text-slate-200');
                 }
             });
 
@@ -1279,8 +1291,8 @@
                 }
             }
             if(activeNav) {
-                activeNav.className = "w-full flex items-center gap-3 px-4 py-2.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-medium transition-all text-left";
-                if(view !== 'pos') activeNav.classList.add('mt-2');
+                activeNav.classList.remove('hover:bg-slate-800', 'text-slate-400', 'hover:text-slate-200');
+                activeNav.classList.add('bg-emerald-600/20', 'text-emerald-400', 'border', 'border-emerald-500/20', 'font-medium');
             }
 
             if(view === 'pos') {
@@ -1299,11 +1311,28 @@
             }
         };
 
-        window.setOrderFilter = (type) => {
-            currentOrderFilter = type;
-            document.getElementById('btn-all').className = type === 'all' ? "px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium shadow-sm transition-colors shrink-0" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm transition-colors shrink-0";
-            document.getElementById('btn-dine').className = type === 'dine-in' ? "px-5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shrink-0" : "px-5 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm flex items-center gap-2 transition-colors shrink-0";
-            window.renderOrders();
+        // 🟢 ฟังก์ชันอัปเดตตัวเลขแจ้งเตือน (Badge) บนเมนูด้านซ้าย
+        window.updateNavBadges = () => {
+            const badgeOrders = document.getElementById('badge-orders');
+            const badgeDelivery = document.getElementById('badge-delivery');
+            
+            const dineInOrders = activeOrders.filter(o => o.status !== 'รอชำระเงิน' && o.type !== 'delivery');
+            const deliveryCount = activeDeliveryOrders.length;
+            const ordersCount = dineInOrders.length;
+
+            if (ordersCount > 0) {
+                badgeOrders.innerText = ordersCount;
+                badgeOrders.classList.remove('hidden');
+            } else {
+                badgeOrders.classList.add('hidden');
+            }
+
+            if (deliveryCount > 0) {
+                badgeDelivery.innerText = deliveryCount;
+                badgeDelivery.classList.remove('hidden');
+            } else {
+                badgeDelivery.classList.add('hidden');
+            }
         };
 
         window.renderOrders = () => {
@@ -1313,17 +1342,10 @@
             let displayOrders = activeOrders.filter(o => o.status !== 'รอชำระเงิน' && o.type !== 'delivery');
 
             const allCount = displayOrders.length;
-            const dineCount = displayOrders.filter(o => o.type === 'dine-in' || o.table).length;
-
-            const elAll = document.getElementById('count-all');
             const elDine = document.getElementById('count-dine');
-            if(elAll) elAll.innerText = allCount;
-            if(elDine) elDine.innerText = dineCount;
-            
-            let filtered = displayOrders;
-            if(currentOrderFilter === 'dine-in') filtered = displayOrders.filter(o => o.type === 'dine-in' || o.table);
+            if(elDine) elDine.innerText = allCount;
 
-            if (filtered.length === 0) {
+            if (displayOrders.length === 0) {
                 container.innerHTML = `
                 <div class="col-span-full flex flex-col items-center justify-center py-24 bg-white rounded-2xl border-2 border-dashed border-slate-200 mx-auto w-full max-w-2xl mt-10 shadow-sm">
                     <div class="w-24 h-24 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner border border-slate-100">
@@ -1340,7 +1362,7 @@
                 return;
             }
 
-            filtered.forEach(order => {
+            displayOrders.forEach(order => {
                 let orderTotal = parseFloat(order.total);
                 if (isNaN(orderTotal) || orderTotal <= 0) {
                     const sub = (order.items || []).reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
@@ -1718,6 +1740,7 @@
                             }
                         } else {
                             // ออเดอร์ทานที่ร้าน (ระบุโต๊ะ)
+                            // การแปลงข้อมูลให้อยู่ในรูปแบบ String ก่อนดึงค่า
                             const tableNo = String(data.table).trim();
                             if (audioTableMap[tableNo]) {
                                 if(audioInitialized) audioTableMap[tableNo].play().catch(e=>console.log(e));
@@ -1744,6 +1767,9 @@
                     allOrdersForAnalytics.push(order);
                 }
             });
+            
+            // อัปเดตตัวเลขแจ้งเตือน (Badge) เมื่อมีข้อมูลออเดอร์เปลี่ยนแปลง
+            window.updateNavBadges();
             
             const ordersView = document.getElementById('view-orders');
             if (ordersView && !ordersView.classList.contains('hidden')) window.renderOrders();
