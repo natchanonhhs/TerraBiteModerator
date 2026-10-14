@@ -996,8 +996,9 @@
         const audioCashier = new Audio('แคชเชียร์.mp3');
         const audioDeliveryPaid = new Audio('ชำระเงินแล้ว.mp3');
         const audioDeliveryCOD = new Audio('เก็บเงินปลายทาง.mp3');
-        const audioCheckBill = new Audio('มีลูกค้าเรียกเช็คบิลค่ะ.mp3'); // ไฟล์เสียงเรียกเช็คบิลเพิ่มเติม
-
+        const audioCheckBill = new Audio('เชคบิล.mp3'); // ไฟล์เสียงเรียกเช็คบิลเพิ่มเติม
+        const audioSound = new Audio('เรียก.mp3');
+        
         // Audio Map สำหรับโต๊ะ
         const audioTableMap = {
             '1': new Audio('โต๊ะที่ 1.mp3'),
@@ -1013,7 +1014,7 @@
             '6': new Audio('โต๊ะที่ 6.mp3'),
             '06': new Audio('โต๊ะที่ 6.mp3')
         };
-        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); // กริ่งเรียกพนักงานสำรอง
+        const bellSound = new Audio('เรียก.mp3'); // กริ่งเรียกพนักงานสำรอง
 
         // ตัวแปรสำหรับป้องกันการเล่นเสียงแจ้งเตือนซ้ำสำหรับออเดอร์/การเรียกเดิม
         const notifiedOrderIds = new Set();
