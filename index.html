@@ -23,29 +23,41 @@
         
         #store-map { z-index: 10; }
 
+        @keyframes alert-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+        .animate-alert-blink {
+            animation: alert-glow 1s infinite ease-in-out;
+        }
+
         @media print {
-            body * { visibility: hidden; }
-            #receipt-printable-area, #receipt-printable-area * { visibility: visible; }
+            body * { visibility: hidden !important; }
+            #receipt-printable-area, #receipt-printable-area * { visibility: visible !important; }
             #receipt-printable-area { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 80mm;
-                margin: 0; 
-                padding: 0; 
-                box-shadow: none; 
+                position: absolute !important; 
+                left: 0 !important; 
+                top: 0 !important; 
+                width: 80mm !important;
+                margin: 0 !important; 
+                padding: 10px !important; 
+                box-shadow: none !important; 
                 color: black !important;
                 background-color: white !important;
+                font-family: 'Prompt', sans-serif !important;
+                font-size: 12px !important;
+                line-height: 1.4 !important;
             }
-            #receipt-modal-bg { background: none !important; }
+            #receipt-modal-bg { background: none !important; position: static !important; }
             .no-print { display: none !important; }
+            @page { size: auto; margin: 0; }
         }
     </style>
 </head>
 <body class="text-slate-800 flex h-screen h-[100dvh] w-full overflow-hidden relative">
 
-    <!-- คอนเทนเนอร์สำหรับไฟกะพริบแจ้งเตือนเมื่อลูกค้าเรียกโต๊ะ -->
-    <div id="table-call-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[400] flex flex-col gap-3 w-[90%] max-w-md pointer-events-none"></div>
+    <!-- คอนเทนเนอร์สำหรับไฟกะพริบแจ้งเตือนเมื่อลูกค้าเรียกโต๊ะ (แสดงเฉพาะหน้าออเดอร์กำลังทำ) -->
+    <div id="table-call-container" class="fixed top-20 right-6 z-[400] flex flex-col gap-2 w-80 max-w-full pointer-events-none"></div>
 
     <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col z-20 shadow-xl hidden md:flex shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-950">
@@ -101,6 +113,12 @@
                 <button onclick="window.location.reload()" class="text-slate-400 hover:text-emerald-500 transition-colors" title="โหลดระบบใหม่">
                     <i class="fas fa-sync-alt"></i>
                 </button>
+                
+                <!-- ปุ่มเปิด/ปิดเสียงแจ้งเตือนข้างปุ่มรีเฟรช -->
+                <button id="sound-toggle-btn" onclick="toggleSoundNotification()" class="text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-1 rounded-lg flex items-center gap-1.5 font-bold text-xs bg-white border border-slate-200 shadow-sm" title="เปิด/ปิดเสียงแจ้งเตือน">
+                    <i class="fas fa-volume-up text-sm"></i> <span>เปิดเสียง</span>
+                </button>
+
                 <div class="w-px h-4 bg-slate-300"></div>
                 <span class="text-xs font-bold text-slate-600 hidden sm:inline">สถานะระบบจัดส่ง:</span>
                 <button id="delivery-toggle-btn" onclick="toggleDeliveryStatus()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
@@ -244,7 +262,8 @@
                         </div>
                         <div>
                             <label class="block text-slate-600 text-sm font-bold mb-1">ข้อความท้ายบิล</label>
-                            <input type="text" id="setting-footer-msg" placeholder="เช่น ขอบคุณที่ใช้บริการ" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm">
+                            <!-- เปลี่ยนเป็น Textarea ให้แสดงผลและป้อนข้อความได้ครบถ้วน -->
+                            <textarea id="setting-footer-msg" rows="3" placeholder="เช่น ขอบคุณที่ใช้บริการ" class="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 text-sm"></textarea>
                         </div>
                     </div>
 
@@ -864,11 +883,12 @@
             </div>
             
             <div class="flex-1 overflow-y-auto p-0 min-h-0 bg-gray-200 flex justify-center no-print">
-                <div id="receipt-printable-area" class="bg-white p-4 w-[80mm] min-h-[100mm] shadow-md my-4 sm:my-8 text-black" style="font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.4;">
+                <!-- ปรับแต่งส่วนใบเสร็จให้ขยายความยาว ไม่ตัดคำ ย่อคำ และรองรับการพิมพ์ได้จริง -->
+                <div id="receipt-printable-area" class="bg-white p-4 w-[80mm] min-h-[100mm] shadow-md my-4 sm:my-8 text-black" style="font-family: 'Prompt', sans-serif; font-size: 12px; line-height: 1.4; word-break: break-word; overflow-wrap: break-word;">
                     <div class="text-center mb-4">
                         <img id="rcpt-logo" src="" class="mx-auto w-16 h-16 object-contain mb-2 hidden grayscale">
                         <h2 id="rcpt-shop-name" class="font-bold text-lg leading-none mb-1">ร้านค้า</h2>
-                        <p id="rcpt-shop-addr" class="text-[10px]"></p>
+                        <p id="rcpt-shop-addr" class="text-[10px] whitespace-pre-line"></p>
                         <p id="rcpt-tax-id" class="text-[10px] hidden">TAX ID: <span id="rcpt-tax-val"></span></p>
                         <p id="rcpt-branch" class="text-[10px] hidden">สาขา: <span id="rcpt-branch-val"></span></p>
                     </div>
@@ -879,12 +899,12 @@
                         <p>ผู้ทำรายการ: <span id="rcpt-cashier">ระบบแคชเชียร์</span></p>
                     </div>
 
-                    <table class="w-full text-left mb-2 text-[11px]">
+                    <table class="w-full text-left mb-2 text-[11px] table-fixed">
                         <thead>
                             <tr class="border-b border-dashed border-black">
-                                <th class="py-1">รายละเอียด</th>
-                                <th class="py-1 text-center w-8">จน.</th>
-                                <th class="py-1 text-right w-12">รวม</th>
+                                <th class="py-1 w-[55%]">รายละเอียด</th>
+                                <th class="py-1 text-center w-[15%]">จน.</th>
+                                <th class="py-1 text-right w-[30%]">รวม</th>
                             </tr>
                         </thead>
                         <tbody id="rcpt-items"></tbody>
@@ -902,7 +922,7 @@
                     </div>
 
                     <div class="text-center mt-6 text-[10px]">
-                        <p id="rcpt-footer-msg" class="mb-2">ขอบคุณที่ใช้บริการ</p>
+                        <p id="rcpt-footer-msg" class="mb-2 whitespace-pre-line">ขอบคุณที่ใช้บริการ</p>
                         <svg id="receipt-barcode" class="w-full h-12 mx-auto"></svg>
                     </div>
                 </div>
@@ -968,13 +988,17 @@
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         // ==========================================
-        // 🟢 ระบบเสียง (Audio Notifications) จากไฟล์ที่อัปโหลด
+        // 🟢 ระบบเสียง (Audio Notifications) ปรับปรุงให้เสถียร สมบูรณ์ เสียงไม่ซ้ำ และไม่ขาดหาย
         // ==========================================
+        let isSoundEnabled = true;
+        let audioInitialized = false;
+
         const audioCashier = new Audio('แคชเชียร์.mp3');
         const audioDeliveryPaid = new Audio('ชำระเงินแล้ว.mp3');
         const audioDeliveryCOD = new Audio('เก็บเงินปลายทาง.mp3');
+        const audioCheckBill = new Audio('มีลูกค้าเรียกเช็คบิลค่ะ.mp3'); // ไฟล์เสียงเรียกเช็คบิลเพิ่มเติม
 
-        // อัปเดต Map ให้รองรับทั้งแบบเลขโดดและเลขที่มี 0 นำหน้า
+        // Audio Map สำหรับโต๊ะ
         const audioTableMap = {
             '1': new Audio('โต๊ะที่ 1.mp3'),
             '01': new Audio('โต๊ะที่ 1.mp3'),
@@ -989,25 +1013,65 @@
             '6': new Audio('โต๊ะที่ 6.mp3'),
             '06': new Audio('โต๊ะที่ 6.mp3')
         };
-        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); // กริ่งเรียกพนักงาน
+        const bellSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_24a1b02534.mp3'); // กริ่งเรียกพนักงานสำรอง
+
+        // ตัวแปรสำหรับป้องกันการเล่นเสียงแจ้งเตือนซ้ำสำหรับออเดอร์/การเรียกเดิม
+        const notifiedOrderIds = new Set();
+        const notifiedCallIds = new Set();
+
+        // ฟังก์ชันเล่นไฟล์เสียงแบบต่อกันอย่างมีเสถียรภาพ เสียงไม่ตัดหน้า
+        async function playAudioSequentially(audioArray) {
+            if (!isSoundEnabled || !audioInitialized) return;
+            for (const audio of audioArray) {
+                if (!audio) continue;
+                try {
+                    audio.currentTime = 0;
+                    await audio.play();
+                    await new Promise((resolve) => {
+                        const onEnded = () => {
+                            audio.removeEventListener('ended', onEnded);
+                            resolve();
+                        };
+                        audio.addEventListener('ended', onEnded);
+                        // Fallback กรณีไฟล์เสียงไม่มี Event ended
+                        setTimeout(resolve, (audio.duration || 1.5) * 1000);
+                    });
+                } catch (e) {
+                    console.log("Audio Play Error:", e);
+                }
+            }
+        }
+
+        // ฟังก์ชันสลับเปิด/ปิดเสียงแจ้งเตือน
+        window.toggleSoundNotification = () => {
+            isSoundEnabled = !isSoundEnabled;
+            const btn = document.getElementById('sound-toggle-btn');
+            if (isSoundEnabled) {
+                btn.className = "text-emerald-600 hover:text-emerald-700 transition-colors px-2 py-1 rounded-lg flex items-center gap-1.5 font-bold text-xs bg-white border border-slate-200 shadow-sm";
+                btn.innerHTML = '<i class="fas fa-volume-up text-sm"></i> <span>เปิดเสียง</span>';
+            } else {
+                btn.className = "text-rose-500 hover:text-rose-600 transition-colors px-2 py-1 rounded-lg flex items-center gap-1.5 font-bold text-xs bg-white border border-slate-200 shadow-sm";
+                btn.innerHTML = '<i class="fas fa-volume-mute text-sm"></i> <span>ปิดเสียง</span>';
+            }
+        };
 
         // เพื่อปลดล็อกการเล่นเสียงในบราวเซอร์อัตโนมัติ (ผู้ใช้ต้องคลิกหน้าจอครั้งแรก)
-        let audioInitialized = false;
         document.body.addEventListener('click', () => {
             if(!audioInitialized) {
-                audioCashier.volume = 0; audioCashier.play().then(()=>audioCashier.pause()).catch(()=>{});
-                audioDeliveryPaid.volume = 0; audioDeliveryPaid.play().then(()=>audioDeliveryPaid.pause()).catch(()=>{});
-                audioDeliveryCOD.volume = 0; audioDeliveryCOD.play().then(()=>audioDeliveryCOD.pause()).catch(()=>{});
-                Object.values(audioTableMap).forEach(audio => {
-                    audio.volume = 0; audio.play().then(()=>audio.pause()).catch(()=>{});
-                });
-                bellSound.volume = 0; bellSound.play().then(()=>bellSound.pause()).catch(()=>{});
+                const initAudio = (a) => { if(a) { a.volume = 0; a.play().then(()=>a.pause()).catch(()=>{}); } };
+                initAudio(audioCashier);
+                initAudio(audioDeliveryPaid);
+                initAudio(audioDeliveryCOD);
+                initAudio(audioCheckBill);
+                Object.values(audioTableMap).forEach(initAudio);
+                initAudio(bellSound);
 
                 setTimeout(() => { 
                     audioCashier.volume = 1; 
                     audioDeliveryPaid.volume = 1; 
                     audioDeliveryCOD.volume = 1; 
-                    Object.values(audioTableMap).forEach(audio => audio.volume = 1);
+                    audioCheckBill.volume = 1;
+                    Object.values(audioTableMap).forEach(audio => { if(audio) audio.volume = 1; });
                     bellSound.volume = 1; 
                 }, 100);
                 audioInitialized = true;
@@ -1131,6 +1195,7 @@
         let adminCoupons = []; 
         let adminBanners = [];
         let currentMenuCategory = 'all';
+        let currentActiveView = 'orders';
         
         let activeOrders = []; 
         let activeDeliveryOrders = []; 
@@ -1147,14 +1212,14 @@
         window.getSafeItemTotal = (item) => {
             if (!item) return 0;
             if (item.totalItemPrice !== undefined && !isNaN(item.totalItemPrice)) {
-                return parseFloat(item.totalItemPrice);
+                return parseFloat(parseFloat(item.totalItemPrice).toFixed(2));
             }
             const p = parseFloat(item.price) || 0;
             const q = parseInt(item.qty) || 1;
-            if (p > 0) return p * q;
+            if (p > 0) return parseFloat((p * q).toFixed(2));
             const foundMenu = adminMenus.find(m => m.name === item.name);
             const menuPrice = foundMenu ? parseFloat(foundMenu.price) || 0 : 0;
-            return menuPrice * q;
+            return parseFloat((menuPrice * q).toFixed(2));
         };
 
         window.toggleDeliveryStatus = async () => {
@@ -1215,7 +1280,7 @@
         }
         loadShopSettings();
 
-        window.saveReceiptSettings = async () => {
+        window.saveReceiptSettings = async (event) => {
             const btn = event.currentTarget;
             const origHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...';
@@ -1266,6 +1331,7 @@
         };
 
         window.switchView = (view) => {
+            currentActiveView = view;
             ['pos', 'orders', 'delivery', 'menu', 'coupons', 'analytics', 'history'].forEach(v => {
                 const viewEl = document.getElementById(`view-${v}`);
                 const navEl = document.getElementById(`nav-${v}`);
@@ -1293,6 +1359,16 @@
             if(activeNav) {
                 activeNav.classList.remove('hover:bg-slate-800', 'text-slate-400', 'hover:text-slate-200');
                 activeNav.classList.add('bg-emerald-600/20', 'text-emerald-400', 'border', 'border-emerald-500/20', 'font-medium');
+            }
+
+            // ซ่อน/แสดงคอนเทนเนอร์ป้ายแจ้งเตือนตามหน้าที่เลือก (แสดงเฉพาะหน้า orders)
+            const callContainer = document.getElementById('table-call-container');
+            if (callContainer) {
+                if (view === 'orders') {
+                    callContainer.classList.remove('hidden');
+                } else {
+                    callContainer.classList.add('hidden');
+                }
             }
 
             if(view === 'pos') {
@@ -1391,7 +1467,7 @@
                             <button onclick="window.viewOrderFullscreen('${order.id}')" class="w-full mt-3 bg-slate-100 text-slate-600 font-bold text-xs py-2 rounded-lg hover:bg-slate-200 transition-colors"><i class="fas fa-expand-alt mr-1"></i> ดูรายละเอียด</button>
                         </div>
                         <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl flex justify-between items-center shrink-0">
-                            <span class="font-bold text-lg">฿${orderTotal}</span>
+                            <span class="font-bold text-lg">฿${orderTotal.toFixed(2)}</span>
                             <button onclick="window.updateOrderStatus('${order.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ดำเนินการเสร็จสิ้น</button>
                         </div>
                     </div>
@@ -1422,7 +1498,7 @@
                     <div class="py-1.5 flex flex-col text-xs text-slate-700 border-b border-slate-100 last:border-0">
                         <div class="flex justify-between">
                             <span class="pr-2"><span class="font-bold bg-slate-200 px-1.5 py-0.5 rounded mr-1">${item.qty || 1}x</span> ${item.name}</span>
-                            <span class="font-bold text-emerald-600">฿${window.getSafeItemTotal(item)}</span>
+                            <span class="font-bold text-emerald-600">฿${window.getSafeItemTotal(item).toFixed(2)}</span>
                         </div>
                         ${item.options ? `<span class="pl-7 text-[10px] text-amber-500">- ${item.options}</span>` : ''}
                         ${item.note ? `<span class="pl-7 text-[10px] text-rose-500">* ${item.note}</span>` : ''}
@@ -1474,7 +1550,7 @@
                             </div>
                             <div class="flex flex-col items-end gap-1">
                                 ${statusBadge}
-                                <span class="text-rose-600 font-bold text-lg mt-1">฿${order.total || 0}</span>
+                                <span class="text-rose-600 font-bold text-lg mt-1">฿${parseFloat(order.total || 0).toFixed(2)}</span>
                             </div>
                         </div>
                         <div class="p-4 flex-1 overflow-y-auto min-h-0">
@@ -1659,7 +1735,7 @@
                         ${item.options ? `<p class="text-sm text-amber-400 mt-2 pl-12"><i class="fas fa-angle-right"></i> ${item.options}</p>` : ''}
                         ${item.note ? `<p class="text-sm text-rose-300 mt-1 pl-12"><i class="fas fa-comment-dots"></i> ข้อมูลเพิ่มเติม: ${item.note}</p>` : ''}
                     </div>
-                    <span class="font-bold text-slate-300">฿${itemTotal}</span>
+                    <span class="font-bold text-slate-300">฿${itemTotal.toFixed(2)}</span>
                 </div>
                 `;
             }).join('');
@@ -1683,7 +1759,7 @@
                         </div>
                         <div class="text-right">
                             <p class="text-slate-400 text-lg">ยอดชำระสุทธิ</p>
-                            <p class="text-5xl font-bold text-emerald-400 mt-1">฿${finalTotal}</p>
+                            <p class="text-5xl font-bold text-emerald-400 mt-1">฿${finalTotal.toFixed(2)}</p>
                         </div>
                     </div>
 
@@ -1694,12 +1770,12 @@
                         ${discountVal > 0 ? `
                         <div class="py-4 flex justify-between text-lg text-rose-400 font-bold border-b border-slate-700">
                             <span>ส่วนลดโปรโมชั่น</span>
-                            <span>- ฿${discountVal}</span>
+                            <span>- ฿${discountVal.toFixed(2)}</span>
                         </div>` : ''}
                         ${isDel && order.deliveryFee ? `
                         <div class="py-4 flex justify-between text-lg text-slate-300 border-b border-slate-700">
                             <span>ค่าบริการจัดส่ง</span>
-                            <span>+ ฿${order.deliveryFee}</span>
+                            <span>+ ฿${parseFloat(order.deliveryFee).toFixed(2)}</span>
                         </div>` : ''}
                     </div>
 
@@ -1717,7 +1793,7 @@
             document.getElementById('order-fullscreen-modal').classList.remove('flex');
         };
 
-        // 🟢 ตรวจจับออเดอร์ใหม่และเสียงเตือน
+        // 🟢 ตรวจจับออเดอร์ใหม่และเล่นเสียงแจ้งเตือนแบบไม่ซ้ำ
         let isInitialOrderLoad = true;
         const qOrder = query(collection(db, "orders"), orderBy("timestamp", "desc"));
         onSnapshot(qOrder, (snapshot) => {
@@ -1727,27 +1803,33 @@
             activeDeliveryOrders = [];
             allOrdersForAnalytics = []; 
             
-            // 🟢 ระบบเล่นเสียงเมื่อมีออเดอร์ใหม่เข้ามา
+            // 🟢 ระบบเล่นเสียงเมื่อมีออเดอร์ใหม่เข้ามา (ป้องกันเล่นซ้ำด้วย Set)
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
+                    const docId = change.doc.id;
                     const data = change.doc.data();
-                    if (!isInitialOrderLoad && data.status !== 'เสร็จสิ้น' && data.status !== 'รอชำระเงิน') {
+                    
+                    if (!isInitialOrderLoad && data.status !== 'เสร็จสิ้น' && data.status !== 'รอชำระเงิน' && !notifiedOrderIds.has(docId)) {
+                        notifiedOrderIds.add(docId); // บันทึก ID ไม่ให้เสียงดังซ้ำ
+                        
                         if (data.type === 'delivery') {
                             if (data.paymentMethod === 'cod') {
-                                if(audioInitialized) audioDeliveryCOD.play().catch(e=>console.log(e));
+                                playAudioSequentially([audioDeliveryCOD]);
                             } else {
-                                if(audioInitialized) audioDeliveryPaid.play().catch(e=>console.log(e));
+                                playAudioSequentially([audioDeliveryPaid]);
                             }
                         } else {
                             // ออเดอร์ทานที่ร้าน (ระบุโต๊ะ)
-                            // การแปลงข้อมูลให้อยู่ในรูปแบบ String ก่อนดึงค่า
                             const tableNo = String(data.table).trim();
-                            if (audioTableMap[tableNo]) {
-                                if(audioInitialized) audioTableMap[tableNo].play().catch(e=>console.log(e));
+                            const tableAudio = audioTableMap[tableNo];
+                            if (tableAudio) {
+                                playAudioSequentially([tableAudio]);
                             } else {
-                                if(audioInitialized) bellSound.play().catch(e=>console.log(e));
+                                playAudioSequentially([bellSound]);
                             }
                         }
+                    } else if (isInitialOrderLoad) {
+                        notifiedOrderIds.add(docId);
                     }
                 }
             });
@@ -1783,30 +1865,61 @@
             if (pendingModal && !pendingModal.classList.contains('hidden')) window.openPendingBillsModal(); 
         });
 
-        // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ (ไฟกะพริบและเสียงกริ่ง)
+        // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ/เช็คบิล (ไฟกะพริบและเล่นเสียงเรียงลำดับเสถียร ไม่ขาดหาย)
         const qCalls = query(collection(db, "table_calls"));
         onSnapshot(qCalls, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
+                const callId = change.doc.id;
                 if (change.type === "added") {
                     const data = change.doc.data();
-                    if(audioInitialized) bellSound.play().catch(e=>console.log(e));
-                    window.renderTableCall(change.doc.id, data.table || 'ไม่ระบุ');
+                    const tableNo = String(data.table || 'ไม่ระบุ').trim();
+                    const type = data.type || 'call'; // 'call' หรือ 'checkbill'
+
+                    if (!notifiedCallIds.has(callId)) {
+                        notifiedCallIds.add(callId);
+                        
+                        // ลำดับการเล่นเสียง: เล่นประเภทการเรียก ตามด้วย เสียงโต๊ะเลขที่...
+                        const tableAudio = audioTableMap[tableNo];
+                        if (type === 'checkbill') {
+                            playAudioSequentially([audioCheckBill, tableAudio]);
+                        } else {
+                            playAudioSequentially([bellSound, tableAudio]);
+                        }
+                    }
+
+                    window.renderTableCall(callId, tableNo, type);
                 }
                 if (change.type === "removed") {
-                    const el = document.getElementById(`call-${change.doc.id}`);
+                    const el = document.getElementById(`call-${callId}`);
                     if(el) el.remove();
                 }
             });
         });
 
-        window.renderTableCall = (id, tableNo) => {
+        // ฟังก์ชันวาดแถบแจ้งเตือนไฟกระพริบ ปรับดีไซน์ตามภาพตัวอย่าง ลบเมื่อกด
+        window.renderTableCall = (id, tableNo, type) => {
             const container = document.getElementById('table-call-container');
-            if(document.getElementById(`call-${id}`)) return; 
+            if(!container || document.getElementById(`call-${id}`)) return; 
+            
             const div = document.createElement('div');
             div.id = `call-${id}`;
-            div.className = "bg-rose-600 text-white px-6 py-4 rounded-xl font-bold shadow-2xl animate-pulse cursor-pointer border-4 border-rose-400 text-lg text-center pointer-events-auto flex items-center justify-center gap-3";
-            div.innerHTML = `<i class="fas fa-bell text-2xl"></i> โต๊ะ ${tableNo} เรียกพนักงาน! (กดเพื่อปิด)`;
-            div.onclick = async () => { await deleteDoc(doc(db, "table_calls", id)); };
+            div.className = "bg-rose-600 text-white px-5 py-3.5 rounded-xl font-bold shadow-2xl animate-alert-blink cursor-pointer border-2 border-rose-400 text-sm text-center pointer-events-auto flex items-center justify-between gap-2 transition-transform hover:scale-105";
+            
+            const actionText = type === 'checkbill' ? '(เรียกเช็คบิล)' : '';
+            div.innerHTML = `
+                <div class="flex items-center gap-2 truncate">
+                    <i class="fas fa-bell text-yellow-300 text-lg"></i>
+                    <span>โต๊ะ ${tableNo} ${actionText} เรียกพนักงาน!</span>
+                </div>
+                <span class="text-xs bg-rose-700 px-2 py-1 rounded hover:bg-rose-800 shrink-0">ปิด</span>
+            `;
+            
+            div.onclick = async () => { 
+                try {
+                    await deleteDoc(doc(db, "table_calls", id));
+                } catch(e) {}
+                div.remove();
+            };
             container.appendChild(div);
         }
 
@@ -1990,7 +2103,7 @@
                         <div class="p-4 flex-1 flex flex-col">
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="font-bold leading-tight">${m.name}</h3>
-                                <span class="text-emerald-600 font-bold ml-2">฿${m.price}</span>
+                                <span class="text-emerald-600 font-bold ml-2">฿${parseFloat(m.price).toFixed(2)}</span>
                             </div>
                             <div class="text-[11px] text-slate-500 mb-2 flex flex-col gap-1">
                                 <span><i class="fas fa-tag"></i> หมวดหมู่: ${catDisplay}</span>
@@ -2075,7 +2188,7 @@
                     <label class="flex items-center gap-3 text-sm border border-slate-200 p-3 rounded-lg cursor-pointer hover:bg-slate-100 bg-white transition-colors">
                         <input type="checkbox" value="${m.id}" class="coupon-item-cb w-4 h-4 text-emerald-600 rounded" ${isChecked}>
                         <span class="flex-1">${m.name}</span>
-                        <span class="text-emerald-600 font-bold">฿${m.price}</span>
+                        <span class="text-emerald-600 font-bold">฿${parseFloat(m.price).toFixed(2)}</span>
                     </label>
                     `;
                 }).join('');
@@ -2359,7 +2472,7 @@
                     </div>
                     <div class="p-3 flex-1 flex flex-col justify-between">
                         <h3 class="font-bold text-sm text-slate-800 leading-tight mb-2 line-clamp-2">${m.name}</h3>
-                        <span class="text-emerald-600 font-bold text-lg">฿${m.price}</span>
+                        <span class="text-emerald-600 font-bold text-lg">฿${parseFloat(m.price).toFixed(2)}</span>
                     </div>
                 </div>
                 `;
@@ -2391,7 +2504,7 @@
                                 <input type="${inputType}" name="opt_${gIdx}" value="${c.name}" data-price="${c.price}" class="pos-opt-input w-5 h-5 text-emerald-600 rounded ${isSingle ? 'rounded-full' : 'rounded-md'}" onchange="updatePosOptTotal()">
                                 <span class="font-medium text-slate-700">${c.name}</span>
                             </div>
-                            <span class="text-slate-500 font-bold">${c.price > 0 ? '+฿'+c.price : ''}</span>
+                            <span class="text-slate-500 font-bold">${c.price > 0 ? '+฿'+parseFloat(c.price).toFixed(2) : ''}</span>
                         </label>
                     `).join('');
 
@@ -2436,7 +2549,7 @@
                 totalOptionsPrice += parseFloat(el.getAttribute('data-price')) || 0;
             });
             const total = (posActiveItem.price + totalOptionsPrice) * posActiveQty;
-            document.getElementById('pos-opt-totalprice').innerText = `(฿${total})`;
+            document.getElementById('pos-opt-totalprice').innerText = `(฿${total.toFixed(2)})`;
         };
 
         window.confirmPosItem = () => {
@@ -2457,7 +2570,7 @@
             }
 
             const note = document.getElementById('pos-opt-note').value.trim();
-            const unitPrice = posActiveItem.price + totalOptionsPrice;
+            const unitPrice = parseFloat((posActiveItem.price + totalOptionsPrice).toFixed(2));
 
             posCart.push({
                 menuId: posActiveItem.id,
@@ -2466,13 +2579,14 @@
                 qty: posActiveQty,
                 options: selectedOptionsStr.join(', '),
                 note: note,
-                totalItemPrice: unitPrice * posActiveQty
+                totalItemPrice: parseFloat((unitPrice * posActiveQty).toFixed(2))
             });
 
             closePosOptionModal();
             renderPosCart();
         };
 
+        // 🟢 ปรับปรุงการคำนวณและแสดงผลส่วนลด ให้เป็นทศนิยม 2 ตำแหน่ง
         window.renderPosCart = () => {
             const container = document.getElementById('pos-cart-items');
             document.getElementById('pos-cart-count').innerText = `${posCart.length} รายการ`;
@@ -2504,7 +2618,7 @@
                             ${item.options ? `<p class="text-xs text-amber-500 mt-1 line-clamp-1"><i class="fas fa-plus text-[10px]"></i> ${item.options}</p>` : ''}
                             ${item.note ? `<p class="text-xs text-rose-400 mt-1 line-clamp-1"><i class="fas fa-comment-dots text-[10px]"></i> ${item.note}</p>` : ''}
                         </div>
-                        <span class="font-bold text-emerald-600">฿${itemTotal}</span>
+                        <span class="font-bold text-emerald-600">฿${itemTotal.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center border-t border-slate-100 pt-2 mt-1">
                         <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-1 shrink-0">
@@ -2518,22 +2632,24 @@
                 `;
             }).join('');
 
-            const finalTotal = Math.max(0, subtotal - currentOrderDiscount);
+            subtotal = parseFloat(subtotal.toFixed(2));
+            const formattedDiscount = parseFloat(parseFloat(currentOrderDiscount || 0).toFixed(2));
+            const finalTotal = Math.max(0, parseFloat((subtotal - formattedDiscount).toFixed(2)));
 
-            document.getElementById('pos-subtotal').innerText = `฿${subtotal}`;
-            document.getElementById('pos-discount').innerText = `- ฿${currentOrderDiscount}`;
+            document.getElementById('pos-subtotal').innerText = `฿${subtotal.toFixed(2)}`;
+            document.getElementById('pos-discount').innerText = `- ฿${formattedDiscount.toFixed(2)}`;
             if (currentOrderCouponCode) {
                 document.getElementById('pos-discount-label').innerText = `ส่วนลด (${currentOrderCouponCode})`;
             } else {
                 document.getElementById('pos-discount-label').innerText = 'ส่วนลด';
             }
-            document.getElementById('pos-total').innerText = `฿${finalTotal}`;
+            document.getElementById('pos-total').innerText = `฿${finalTotal.toFixed(2)}`;
         };
 
         window.updatePosItemQty = (index, delta) => {
             if(posCart[index].qty + delta > 0) {
                 posCart[index].qty += delta;
-                posCart[index].totalItemPrice = (parseFloat(posCart[index].price) || 0) * posCart[index].qty;
+                posCart[index].totalItemPrice = parseFloat(((parseFloat(posCart[index].price) || 0) * posCart[index].qty).toFixed(2));
                 renderPosCart();
             }
         };
@@ -2571,7 +2687,7 @@
 
                 try {
                     let subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
-                    let finalTotal = Math.max(0, subtotal - currentOrderDiscount);
+                    let finalTotal = Math.max(0, parseFloat((subtotal - currentOrderDiscount).toFixed(2)));
 
                     if (mergedOrderIds.length > 0) {
                         for (const oldId of mergedOrderIds) {
@@ -2584,7 +2700,7 @@
                             status: 'รอชำระเงิน', 
                             items: posCart,
                             total: finalTotal,
-                            discount: currentOrderDiscount,
+                            discount: parseFloat(currentOrderDiscount.toFixed(2)),
                             couponCode: currentOrderCouponCode,
                             timestamp: new Date()
                         });
@@ -2594,7 +2710,7 @@
                             table: tableName,
                             items: posCart,
                             total: finalTotal,
-                            discount: currentOrderDiscount,
+                            discount: parseFloat(currentOrderDiscount.toFixed(2)),
                             couponCode: currentOrderCouponCode,
                             updated_at: new Date()
                         });
@@ -2606,7 +2722,7 @@
                             status: 'กำลังทำ', 
                             items: posCart,
                             total: finalTotal,
-                            discount: currentOrderDiscount,
+                            discount: parseFloat(currentOrderDiscount.toFixed(2)),
                             couponCode: currentOrderCouponCode,
                             timestamp: new Date()
                         });
@@ -2675,7 +2791,7 @@
                                     <span class="font-bold text-slate-700">รายการที่ ${index + 1}</span>
                                     ${statusBadge}
                                 </div>
-                                <p class="text-xs text-slate-500">จำนวน ${itemCount} รายการ | ยอดสุทธิ <span class="font-bold text-emerald-600">฿${orderTotal}</span> ${o.discount ? `<span class="text-rose-500 text-xs ml-2">(ส่วนลด ฿${o.discount})</span>` : ''}</p>
+                                <p class="text-xs text-slate-500">จำนวน ${itemCount} รายการ | ยอดสุทธิ <span class="font-bold text-emerald-600">฿${orderTotal.toFixed(2)}</span> ${o.discount ? `<span class="text-rose-500 text-xs ml-2">(ส่วนลด ฿${parseFloat(o.discount).toFixed(2)})</span>` : ''}</p>
                             </div>
                             <button onclick="loadPendingBill('${o.id}')" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg font-bold text-xs transition-colors shrink-0">
                                 จัดการรายการนี้
@@ -2712,7 +2828,7 @@
                     totalItemPrice: window.getSafeItemTotal(item)
                 }));
                 
-                currentOrderDiscount = parseFloat(order.discount) || 0;
+                currentOrderDiscount = parseFloat(parseFloat(order.discount || 0).toFixed(2));
                 currentOrderCouponCode = order.couponCode || '';
                 posEditingOrderId = order.id;
                 mergedOrderIds = []; 
@@ -2764,6 +2880,7 @@
                     });
                 });
                 
+                currentOrderDiscount = parseFloat(currentOrderDiscount.toFixed(2));
                 posEditingOrderId = null; 
 
                 document.getElementById('pos-cart-title').innerHTML = `<i class="fas fa-object-group mr-2"></i>บิลรวมโต๊ะ: <span class="text-indigo-600">${tableName}</span>`;
@@ -2788,16 +2905,16 @@
             if(posCart.length === 0) return window.showCustomAlert('ไม่มีข้อมูลในตะกร้า');
             
             const subtotal = posCart.reduce((sum, item) => sum + window.getSafeItemTotal(item), 0);
-            posTotalAmount = Math.max(0, subtotal - currentOrderDiscount);
+            posTotalAmount = Math.max(0, parseFloat((subtotal - currentOrderDiscount).toFixed(2)));
             
-            document.getElementById('pos-checkout-total').innerText = `฿${posTotalAmount}`;
+            document.getElementById('pos-checkout-total').innerText = `฿${posTotalAmount.toFixed(2)}`;
             document.getElementById('pos-cash-received').value = '';
-            document.getElementById('pos-cash-change').innerText = '฿0';
+            document.getElementById('pos-cash-change').innerText = '฿0.00';
             
             let summaryHtml = posCart.map(item => `
                 <div class="flex justify-between py-2 border-b border-slate-700/50 text-sm">
                     <div class="truncate pr-2 text-slate-300"><span class="text-white font-bold">${item.qty}x</span> ${item.name}</div>
-                    <span class="text-emerald-400">฿${window.getSafeItemTotal(item)}</span>
+                    <span class="text-emerald-400">฿${window.getSafeItemTotal(item).toFixed(2)}</span>
                 </div>
             `).join('');
 
@@ -2805,7 +2922,7 @@
                 summaryHtml += `
                 <div class="flex justify-between py-2 border-b border-slate-700/50 text-sm text-rose-400 font-bold">
                     <span>ส่วนลด (${currentOrderCouponCode || 'คูปอง'})</span>
-                    <span>- ฿${currentOrderDiscount}</span>
+                    <span>- ฿${parseFloat(currentOrderDiscount).toFixed(2)}</span>
                 </div>`;
             }
 
@@ -2899,12 +3016,12 @@
         window.addCashAmount = (amount) => {
             const input = document.getElementById('pos-cash-received');
             let current = parseFloat(input.value) || 0;
-            input.value = current + amount;
+            input.value = (current + amount).toFixed(2);
             calculatePosChange();
         };
 
         window.setExactCash = () => {
-            document.getElementById('pos-cash-received').value = posTotalAmount;
+            document.getElementById('pos-cash-received').value = posTotalAmount.toFixed(2);
             calculatePosChange();
         };
 
@@ -2913,13 +3030,13 @@
             const change = received - posTotalAmount;
             const changeEl = document.getElementById('pos-cash-change');
             if(change > 0) {
-                changeEl.innerText = `฿${change}`;
+                changeEl.innerText = `฿${change.toFixed(2)}`;
                 changeEl.className = "font-bold text-emerald-600 text-3xl";
             } else if (change === 0 && received > 0) {
                 changeEl.innerText = `พอดี`;
                 changeEl.className = "font-bold text-emerald-600 text-3xl";
             } else {
-                changeEl.innerText = `฿0`;
+                changeEl.innerText = `฿0.00`;
                 changeEl.className = "font-bold text-amber-600 text-3xl";
             }
         };
@@ -2943,7 +3060,7 @@
             btnNoPrint.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...'; btnNoPrint.disabled = true;
 
             // 🟢 เสียงแคชเชียร์ เมื่อกดปุ่มยืนยัน
-            if (audioInitialized) audioCashier.play().catch(e=>console.log(e));
+            playAudioSequentially([audioCashier]);
 
             try {
                 for (const item of posCart) {
@@ -2963,12 +3080,12 @@
                     type: 'dine-in',
                     status: 'เสร็จสิ้น', 
                     items: posCart,
-                    total: posTotalAmount,
-                    discount: currentOrderDiscount,
+                    total: parseFloat(posTotalAmount.toFixed(2)),
+                    discount: parseFloat(currentOrderDiscount.toFixed(2)),
                     couponCode: currentOrderCouponCode,
                     paymentMethod: posPaymentMethod,
-                    receivedAmount: receivedAmount,
-                    changeAmount: changeAmount,
+                    receivedAmount: parseFloat(receivedAmount.toFixed(2)),
+                    changeAmount: parseFloat(changeAmount.toFixed(2)),
                     timestamp: new Date(),
                     paid_at: new Date()
                 };
@@ -2984,12 +3101,12 @@
                     await updateDoc(doc(db, "orders", posEditingOrderId), {
                         status: 'เสร็จสิ้น',
                         items: posCart,
-                        total: posTotalAmount,
-                        discount: currentOrderDiscount,
+                        total: parseFloat(posTotalAmount.toFixed(2)),
+                        discount: parseFloat(currentOrderDiscount.toFixed(2)),
                         couponCode: currentOrderCouponCode,
                         paymentMethod: posPaymentMethod,
-                        receivedAmount: receivedAmount,
-                        changeAmount: changeAmount,
+                        receivedAmount: parseFloat(receivedAmount.toFixed(2)),
+                        changeAmount: parseFloat(changeAmount.toFixed(2)),
                         paid_at: new Date()
                     });
                 } else {
@@ -3020,6 +3137,7 @@
             }
         };
 
+        // 🟢 ปรับการแสดงผลใบเสร็จ ให้ความยาวขยายตามจริง ข้อความท้ายบิลครบถ้วน และไม่ย่อคำ
         window.showReceipt = (orderId) => {
             const order = allOrdersForAnalytics.find(o => o.id === orderId) || activeOrders.find(o => o.id === orderId) || activeDeliveryOrders.find(o => o.id === orderId);
             if (!order) return window.showCustomAlert('ไม่พบข้อมูลสำหรับการพิมพ์');
@@ -3047,6 +3165,7 @@
                 document.getElementById('rcpt-branch').classList.add('hidden');
             }
 
+            // แสดงข้อความท้ายบิลทั้งหมดอย่างสมบูรณ์
             document.getElementById('rcpt-footer-msg').innerText = receiptSettings.footerMsg || 'ขอบคุณที่ใช้บริการ';
 
             // แสดงหมายเลขออเดอร์ที่จัดฟอร์แมตแล้ว
@@ -3058,12 +3177,14 @@
             const itemsHtml = (order.items || []).map(item => {
                 const iTotal = window.getSafeItemTotal(item);
                 subtotal += iTotal;
-                const opts = item.options ? `<br><span class="text-[9px] text-gray-500 pl-2">- ${item.options}</span>` : '';
+                const opts = item.options ? `<br><span class="text-[9px] text-gray-600 pl-2 font-normal leading-tight break-words">- ${item.options}</span>` : '';
+                const noteStr = item.note ? `<br><span class="text-[9px] text-gray-600 pl-2 font-normal leading-tight break-words">* ${item.note}</span>` : '';
+                
                 return `
-                <tr>
-                    <td class="py-1 pr-1 align-top">${item.name}${opts}</td>
-                    <td class="py-1 text-center align-top">${item.qty}</td>
-                    <td class="py-1 text-right align-top">${iTotal}</td>
+                <tr class="border-b border-gray-100 last:border-0">
+                    <td class="py-1.5 pr-1 align-top break-words font-medium">${item.name}${opts}${noteStr}</td>
+                    <td class="py-1.5 text-center align-top font-bold">${item.qty}</td>
+                    <td class="py-1.5 text-right align-top font-bold">${iTotal.toFixed(2)}</td>
                 </tr>`;
             }).join('');
             document.getElementById('rcpt-items').innerHTML = itemsHtml;
@@ -3071,16 +3192,16 @@
             const disc = parseFloat(order.discount) || 0;
             const finalTotal = parseFloat(order.total) || (subtotal - disc);
 
-            document.getElementById('rcpt-subtotal').innerText = subtotal.toLocaleString();
-            document.getElementById('rcpt-discount').innerText = disc > 0 ? `-${disc.toLocaleString()}` : '0';
-            document.getElementById('rcpt-total').innerText = finalTotal.toLocaleString();
+            document.getElementById('rcpt-subtotal').innerText = subtotal.toFixed(2);
+            document.getElementById('rcpt-discount').innerText = disc > 0 ? `-${disc.toFixed(2)}` : '0.00';
+            document.getElementById('rcpt-total').innerText = finalTotal.toFixed(2);
 
             const payMethodsReceipt = { 'cash': 'เงินสด', 'qr': 'สแกนจ่าย (PromptPay/โอน)', 'card': 'บัตรเครดิต', 'cod': 'เก็บเงินปลายทาง', 'transfer': 'โอนเงิน' };
             document.getElementById('rcpt-pay-method').innerText = payMethodsReceipt[order.paymentMethod] || order.paymentMethod || 'ไม่ระบุ';
             
             if (order.paymentMethod === 'cash' && order.receivedAmount !== undefined) {
-                document.getElementById('rcpt-received').innerText = parseFloat(order.receivedAmount).toLocaleString();
-                document.getElementById('rcpt-change').innerText = parseFloat(order.changeAmount || 0).toLocaleString();
+                document.getElementById('rcpt-received').innerText = parseFloat(order.receivedAmount).toFixed(2);
+                document.getElementById('rcpt-change').innerText = parseFloat(order.changeAmount || 0).toFixed(2);
                 document.getElementById('rcpt-payment-details').classList.remove('hidden');
             } else {
                 document.getElementById('rcpt-payment-details').classList.add('hidden');
@@ -3162,7 +3283,7 @@
                     <td class="py-3 px-5 text-sm font-medium text-slate-800"><i class="fas fa-hashtag text-slate-300 mr-1"></i>${window.formatOrderID(o.id)}</td>
                     <td class="py-3 px-5 text-sm">${typeStr}</td>
                     <td class="py-3 px-5 text-sm font-medium">${payMethods[o.paymentMethod] || '-'}</td>
-                    <td class="py-3 px-5 text-sm font-bold text-slate-800 text-right">฿${parseFloat(o.total || 0).toLocaleString()}</td>
+                    <td class="py-3 px-5 text-sm font-bold text-slate-800 text-right">฿${parseFloat(o.total || 0).toFixed(2)}</td>
                     <td class="py-3 px-5 text-center">
                         <button onclick="showReceipt('${o.id}')" class="text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded text-xs font-bold transition-colors border border-indigo-200"><i class="fas fa-print"></i> พิมพ์บิล</button>
                     </td>
@@ -3326,7 +3447,7 @@
                 <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-5 text-sm font-medium text-slate-800">${idx+1}. ${item.name}</td>
                     <td class="py-3 px-5 text-sm text-center font-bold text-emerald-600">${item.qty}</td>
-                    <td class="py-3 px-5 text-sm text-right text-slate-600">฿${item.total.toLocaleString()}</td>
+                    <td class="py-3 px-5 text-sm text-right text-slate-600">฿${item.total.toFixed(2)}</td>
                 </tr>
             `).join('') || `<tr><td colspan="3" class="text-center py-10 text-slate-400">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>`;
             document.getElementById('analytics-top-products').innerHTML = topProductsHTML;
@@ -3371,7 +3492,7 @@
                                     let label = context.dataset.label || '';
                                     if (label) { label += ': '; }
                                     if (context.parsed.y !== null) {
-                                        label += '฿' + context.parsed.y.toLocaleString();
+                                        label += '฿' + context.parsed.y.toFixed(2);
                                     }
                                     return label;
                                 }
