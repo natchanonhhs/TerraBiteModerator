@@ -996,10 +996,10 @@
         const audioCashier = new Audio('แคชเชียร์.mp3');
         const audioDeliveryPaid = new Audio('ชำระเงินแล้ว.mp3');
         const audioDeliveryCOD = new Audio('เก็บเงินปลายทาง.mp3');
-        const audioCheckBill = new Audio('เชคบิล.mp3');
+        const audioCheckBill = new Audio('เชคบิล.mp3'); // ไฟล์เสียงเรียกเช็คบิลเพิ่มเติม
         const audioSound = new Audio('เรียก.mp3');
         
-        // Audio Map สำหรับโต๊ะ (ยังเก็บไว้เผื่อส่วนอื่นเรียกใช้ แต่ไม่ได้ใช้ในฟังก์ชันเรียกโต๊ะแล้ว)
+        // Audio Map สำหรับโต๊ะ
         const audioTableMap = {
             '1': new Audio('โต๊ะที่ 1.mp3'),
             '01': new Audio('โต๊ะที่ 1.mp3'),
@@ -1866,7 +1866,7 @@
             if (pendingModal && !pendingModal.classList.contains('hidden')) window.openPendingBillsModal(); 
         });
 
-        // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ/เช็คบิล (ไฟกะพริบและเล่นเสียงเฉพาะเสียงเรียก/เช็คบิลเท่านั้น ไม่ต่อด้วยเสียงโต๊ะ)
+        // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ/เช็คบิล (ไฟกะพริบและเล่นเสียงเรียงลำดับเสถียร ไม่ขาดหาย)
         const qCalls = query(collection(db, "table_calls"));
         onSnapshot(qCalls, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -1879,11 +1879,11 @@
                     if (!notifiedCallIds.has(callId)) {
                         notifiedCallIds.add(callId);
                         
-                        // เล่นเฉพาะเสียงประเภทการเรียก (เชคบิล.mp3 หรือ เรียก.mp3) อย่างเดียว ไม่ต่อด้วยเสียงโต๊ะ
+                        // ลำดับการเล่นเสียง: เล่นเฉพาะเสียงประเภทการเรียก (เชคบิล.mp3 / เรียก.mp3)
                         if (type === 'checkbill') {
                             playAudioSequentially([audioCheckBill]);
                         } else {
-                            playAudioSequentially([audioSound]); // หรือใช้ bellSound ตามตัวแปรที่มี
+                            playAudioSequentially([audioCall]);
                         }
                     }
 
@@ -1894,7 +1894,7 @@
                     if(el) el.remove();
                 }
             });
-        ))
+        });
 
         // ฟังก์ชันวาดแถบแจ้งเตือนไฟกระพริบ ปรับดีไซน์ตามภาพตัวอย่าง ลบเมื่อกด
         window.renderTableCall = (id, tableNo, type) => {
