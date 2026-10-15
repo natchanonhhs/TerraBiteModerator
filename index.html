@@ -1867,8 +1867,21 @@
         });
 
         // 🟢 ตรวจจับระบบลูกค้ากดเรียกโต๊ะ/เช็คบิล (ไฟกะพริบและเล่นเสียงเรียงลำดับเสถียร ไม่ขาดหาย)
+        let isInitialLoad = true;
         const qCalls = query(collection(db, "table_calls"));
         onSnapshot(qCalls, (snapshot) => {
+            if (isInitialLoad) {
+                snapshot.docs.forEach((docSnap) => {
+                    notifiedCallIds.add(docSnap.id);
+                    const data = docSnap.data();
+                    const tableNo = String(data.table || 'ไม่ระบุ').trim();
+                    const type = data.type || 'call';
+                    window.renderTableCall(docSnap.id, tableNo, type);
+                });
+                isInitialLoad = false;
+                return;
+            }
+
             snapshot.docChanges().forEach((change) => {
                 const callId = change.doc.id;
                 if (change.type === "added") {
