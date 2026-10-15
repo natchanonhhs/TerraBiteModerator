@@ -1879,11 +1879,12 @@
                     if (!notifiedCallIds.has(callId)) {
                         notifiedCallIds.add(callId);
                         
-                        // ลำดับการเล่นเสียง: เล่นเฉพาะเสียงประเภทการเรียก (เชคบิล.mp3 / เรียก.mp3)
+                        // ลำดับการเล่นเสียง: เล่นประเภทการเรียก ตามด้วย เสียงโต๊ะเลขที่...
+                        const tableAudio = audioTableMap[tableNo];
                         if (type === 'checkbill') {
-                            playAudioSequentially([audioCheckBill]);
+                            playAudioSequentially([audioCheckBill, tableAudio]);
                         } else {
-                            playAudioSequentially([audioCall]);
+                            playAudioSequentially([bellSound, tableAudio]);
                         }
                     }
 
