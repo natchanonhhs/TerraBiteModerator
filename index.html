@@ -1882,9 +1882,9 @@
                         // ลำดับการเล่นเสียง: เล่นประเภทการเรียก ตามด้วย เสียงโต๊ะเลขที่...
                         const tableAudio = audioTableMap[tableNo];
                         if (type === 'checkbill') {
-                            playAudioSequentially([audioCheckBill, tableAudio]);
+                            playAudioSequentially([audioCheckBill]);
                         } else {
-                            playAudioSequentially([bellSound, tableAudio]);
+                            playAudioSequentially([bellSound]);
                         }
                     }
 
