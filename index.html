@@ -1014,8 +1014,8 @@
             '6': new Audio('โต๊ะที่ 6.mp3'),
             '06': new Audio('โต๊ะที่ 6.mp3')
         };
-        const bellSound = new Audio ('เรียก.mp3') : /| กริ่งเรียกพนักงานสำรอง
-        
+        const bellSound = new Audio('เรียก.mp3'); // กริ่งเรียกพนักงานสำรอง
+
         // ตัวแปรสำหรับป้องกันการเล่นเสียงแจ้งเตือนซ้ำสำหรับออเดอร์/การเรียกเดิม
         const notifiedOrderIds = new Set();
         const notifiedCallIds = new Set();
@@ -1879,12 +1879,12 @@
                     if (!notifiedCallIds.has(callId)) {
                         notifiedCallIds.add(callId);
                         
-                        // ลำดับการเล่นเสียง: เล่นประเภทการเรียก 
+                        // ลำดับการเล่นเสียง: เล่นประเภทการเรียก ตามด้วย เสียงโต๊ะเลขที่...
                         const tableAudio = audioTableMap[tableNo];
                         if (type === 'checkbill') {
-                            playAudioSequentially([new Audio('เชคบิล.mp3')]);
+                            playAudioSequentially([audioCheckBill]);
                         } else {
-                            playAudioSequentially([new Audio('เรียก.mp3')]);
+                            playAudioSequentially([bellSound]);
                         }
                     }
 
