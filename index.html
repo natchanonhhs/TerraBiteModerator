@@ -218,7 +218,6 @@
             </div>
         </header>
 
-        <div class="no-print px-4 py-2 bg-emerald-50 text-sm"><button onclick="openRiderDirectory()" class="font-bold text-emerald-800">จัดการทีมไรเดอร์ / อนุมัติสมาชิก</button></div>
         <!-- VIEW: แคชเชียร์ (POS) -->
         <div id="view-pos" class="hidden flex-1 overflow-hidden w-full bg-slate-100 flex-row h-full">
             <div class="flex-1 flex flex-col overflow-hidden relative min-w-0">
@@ -745,19 +744,23 @@
     <div id="delivery-rider-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] hidden justify-center items-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col transform scale-95 transition-transform" id="delivery-rider-box">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0 rounded-t-2xl">
-                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-motorcycle text-indigo-500 mr-2"></i>เลือกไรเดอร์ออนไลน์</h3>
+                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-motorcycle text-indigo-500 mr-2"></i>ระบุข้อมูลผู้จัดส่ง</h3>
                 <button onclick="closeDeliveryRiderModal()" class="text-slate-400 hover:text-rose-500 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="rider-order-id">
-                <label class="block text-sm font-bold text-slate-600" for="rider-select">ไรเดอร์ที่ออนไลน์และพร้อมรับงาน</label>
-                <select id="rider-select" class="w-full p-3 border rounded-xl"><option value="">กรุณาเข้าสู่ระบบร้านค้า</option></select>
-                <p id="rider-availability-note" class="text-xs text-slate-500">รายชื่อจะอัปเดตอัตโนมัติ</p>
-                <button onclick="openRiderDirectory()" class="text-emerald-700 text-sm font-bold">จัดการ / อนุมัติบัญชีไรเดอร์</button>
+                <div>
+                    <label class="block text-slate-600 text-sm font-bold mb-1">ชื่อไรเดอร์ / ผู้จัดส่ง</label>
+                    <input type="text" id="rider-name" placeholder="ตัวอย่าง: สมชาย" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-slate-600 text-sm font-bold mb-1">เบอร์โทรศัพท์ติดต่อ</label>
+                    <input type="tel" id="rider-phone" placeholder="08X-XXX-XXXX" class="w-full p-3 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm">
+                </div>
             </div>
             <div class="p-5 border-t border-slate-200 bg-white flex justify-end gap-3 rounded-b-2xl">
                 <button onclick="closeDeliveryRiderModal()" class="px-5 py-2.5 rounded-lg font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">ยกเลิก</button>
-                <button onclick="saveDeliveryRiderInfo()" id="btn-save-rider" class="px-5 py-2.5 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">มอบหมายงานให้ไรเดอร์</button>
+                <button onclick="saveDeliveryRiderInfo()" id="btn-save-rider" class="px-5 py-2.5 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">ยืนยันการจัดส่ง</button>
             </div>
         </div>
     </div>
@@ -1053,16 +1056,7 @@
     <!-- ========================================== -->
     <!-- SCRIPT -->
     <!-- ========================================== -->
-    <script>
-(function(){
- function show(text){let box=document.getElementById('startup-error');if(!box){box=document.createElement('div');box.id='startup-error';box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#fff1f2;color:#9f1239;padding:16px;font:16px sans-serif;white-space:pre-wrap';document.body.append(box);}box.textContent='โหลดระบบไม่สำเร็จ: '+text;}
- window.addEventListener('error',e=>{if(e.message)show(e.message);});
- window.addEventListener('unhandledrejection',e=>show(e.reason?.message||String(e.reason)));
- setTimeout(()=>{if(!document.getElementById('tc-entry'))show('ตรวจว่า terra-connect.js และ terra-free-api.js อยู่โฟลเดอร์เดียวกับหน้านี้ และเปิดผ่าน HTTPS');},15000);
-})();
-</script>
-<script type="module">
-        import { initConnect, escapeHTML, stageLabel } from "./terra-connect.js";
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -1077,19 +1071,8 @@
             messagingSenderId: "375984636440",
             appId: "1:375984636440:web:685692699c3320e201f96d"
         };
-        const connect = initConnect(firebaseConfig, "shop");
-        const {getAuth,onAuthStateChanged}=await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js');
-        connect.openAccount();
-        await new Promise(resolve=>{let stop=onAuthStateChanged(connect.auth,u=>{if(u){stop();resolve();}});});
-        const app = connect.auth.app;
-        await connect.requireStaff();
-        const db = connect.db;
-        const shopPermission = await getDoc(doc(db, 'rtc_roles', connect.auth.currentUser.uid));
-        if (!shopPermission.exists() || shopPermission.data().shop !== true) {
-            throw new Error('บัญชีนี้ยังไม่มีสิทธิ์ร้านค้า: ตรวจ rtc_roles/UID และ shop = true ใน Firebase');
-        }
-        const signedInUid = connect.auth.currentUser.uid;
-        onAuthStateChanged(connect.auth, u => {if (!u || u.uid !== signedInUid) location.reload();});
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         const supabaseUrl = 'https://vupihvoldblwdtkfnjjc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1cGlodm9sZGJsd2R0a2ZuampjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTAwNDAsImV4cCI6MjEwNjk2NjA0MH0.Db91stvkIKdpWOz_nn185obEkcJX4V12HOZlkgiBO3s';
@@ -1778,18 +1761,11 @@
                     actionBtn = `<button onclick="updateDeliveryStatus('${order.id}', 'รอไรเดอร์มารับ')" class="w-full bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">เตรียมจัดส่ง</button>`;
                 } else if(order.status === 'รอไรเดอร์มารับ') {
                     statusBadge = `<span class="px-2 py-1 bg-indigo-100 text-indigo-700 font-bold rounded text-[10px]">รอรับสินค้า</span>`;
-                    actionBtn = `<button onclick="openRiderModal('${order.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">เลือกไรเดอร์ออนไลน์</button>`;
+                    actionBtn = `<button onclick="openRiderModal('${order.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ระบุข้อมูลผู้จัดส่ง</button>`;
                 } else if(order.status === 'กำลังจัดส่ง') {
                     statusBadge = `<span class="px-2 py-1 bg-sky-100 text-sky-700 font-bold rounded text-[10px]">กำลังจัดส่ง</span>`;
                     actionBtn = `<button onclick="updateDeliveryStatus('${order.id}', 'เสร็จสิ้น')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">ยืนยันการจัดส่งสำเร็จ</button>`;
                 }
-
-                if (order.riderUid && order.status !== 'เสร็จสิ้น') {
-                    statusBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-800 font-bold rounded text-xs">${escapeHTML(stageLabel(order.riderStage))}</span>`;
-                    actionBtn = `<button onclick="openRiderTracking('${order.id}')" class="w-full bg-emerald-700 text-white p-3 rounded-xl font-bold">ติดตามตำแหน่ง / สถานะไรเดอร์</button><div class="tc-callorder"><button class="tc-btn tc-sub" onclick="terraCall('${order.id}', 'rider')">โทรหาไรเดอร์</button><button class="tc-btn tc-sub" onclick="terraCall('${order.id}', 'customer')">โทรหาลูกค้า</button></div>`;
-                }
-
-                actionBtn += `<div class="tc-callorder"><button class="tc-btn tc-sub" onclick="terraChat('${order.id}')">แชตในออเดอร์</button></div>`;
 
                 const mapBtn = order.location ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${order.location.lat},${order.location.lng}" target="_blank" class="text-[11px] bg-blue-50 text-blue-600 px-2 py-1 rounded mt-2 inline-block font-bold border border-blue-200 hover:bg-blue-100"><i class="fas fa-location-arrow"></i> เปิดแผนที่นำทาง</a>` : '';
 
@@ -1827,7 +1803,7 @@
                             <h4 class="font-bold text-sm text-slate-700 mb-2 border-b border-slate-100 pb-1">รายการอาหาร</h4>
                             ${itemsHTML}
                             ${paymentHTML}
-                            ${order.riderName ? `<div class="mt-3 p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700"><p class="font-bold"><i class="fas fa-motorcycle"></i> ข้อมูลผู้จัดส่ง:</p><p>${escapeHTML(order.riderName)} (${escapeHTML(order.riderPhone || '-')})</p></div>` : ''}
+                            ${order.riderName ? `<div class="mt-3 p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700"><p class="font-bold"><i class="fas fa-motorcycle"></i> ข้อมูลผู้จัดส่ง:</p><p>${order.riderName} (${order.riderPhone || '-'})</p></div>` : ''}
                             <button onclick="window.viewOrderFullscreen('${order.id}')" class="w-full mt-3 bg-slate-100 text-slate-600 font-bold text-xs py-2 rounded-lg hover:bg-slate-200 transition-colors"><i class="fas fa-expand-alt mr-1"></i> ดูรายละเอียดแบบเต็มจอ</button>
                         </div>
                         <div class="p-4 bg-slate-50 mt-auto border-t border-slate-100 rounded-b-xl shrink-0">
@@ -1839,8 +1815,6 @@
         };
 
         window.updateDeliveryStatus = async (orderId, newStatus) => {
-            const current = activeDeliveryOrders.find(o => o.id === orderId);
-            if (current?.riderUid) return window.showCustomAlert('สถานะงานนี้จะอัปเดตจากไรเดอร์ กรุณาใช้ปุ่มติดตามไรเดอร์');
             if(newStatus === 'เสร็จสิ้น') {
                 window.showCustomConfirm('ยืนยันว่าการจัดส่งเสร็จสมบูรณ์แล้ว?', async () => {
                     await updateDoc(doc(db, "orders", orderId), { status: newStatus, completed_at: new Date() });
@@ -1947,8 +1921,8 @@
 
         window.openRiderModal = (orderId) => {
             document.getElementById('rider-order-id').value = orderId;
-            if (!connect.user) { connect.openAccount(); return; }
-            refreshRiderOptions();
+            document.getElementById('rider-name').value = '';
+            document.getElementById('rider-phone').value = '';
             document.getElementById('delivery-rider-modal').classList.remove('hidden');
             document.getElementById('delivery-rider-modal').classList.add('flex');
             setTimeout(() => document.getElementById('delivery-rider-box').classList.remove('scale-95'), 10);
@@ -1964,62 +1938,27 @@
 
         window.saveDeliveryRiderInfo = async () => {
             const orderId = document.getElementById('rider-order-id').value;
-            const riderId = document.getElementById('rider-select').value;
-            if (!riderId) return window.showCustomAlert('กรุณาเลือกไรเดอร์ที่พร้อมรับงาน');
-            const btn = document.getElementById('btn-save-rider');
-            btn.disabled = true;
-            try { await connect.rpc('assignRider', {orderId, riderId}); window.closeDeliveryRiderModal(); }
-            catch (error) { window.showCustomAlert(error.message); }
-            finally { btn.disabled = false; }
-        };
+            const riderName = document.getElementById('rider-name').value.trim();
+            const riderPhone = document.getElementById('rider-phone').value.trim();
 
-        let riderDirectory = [], stopRiderDirectory = null, directoryUid = null;
-        function refreshRiderOptions() {
-            const select = document.getElementById('rider-select');
-            const selected = select.value;
-            const available = riderDirectory.filter(r => r.approved && r.online && r.availability === 'available' && !r.activeOrderId && Date.now() - (r.lastSeen?.toMillis() || 0) < 135000);
-            select.innerHTML = '<option value="">เลือกไรเดอร์</option>' + available.map(r => `<option value="${escapeHTML(r.id)}">${escapeHTML(r.name)} • ${escapeHTML(r.vehicle)}</option>`).join('');
-            if (available.some(r => r.id === selected)) select.value = selected;
-            document.getElementById('rider-availability-note').textContent = available.length ? `พร้อมรับงาน ${available.length} คน` : 'ยังไม่มีไรเดอร์ออนไลน์พร้อมรับงาน';
-        }
-        function syncRiderDirectory() {
-            if (directoryUid === connect.user?.uid) return;
-            stopRiderDirectory?.(); directoryUid = connect.user?.uid || null;
-            riderDirectory = []; refreshRiderOptions();
-            if (directoryUid) stopRiderDirectory = connect.onRiders(rows => {riderDirectory = rows; refreshRiderOptions(); renderRiderDirectory();});
-        }
-        window.addEventListener('terra-connect-change', syncRiderDirectory);
-        syncRiderDirectory();
-        setInterval(refreshRiderOptions, 15000);
-        function renderRiderDirectory() {
-            const list = document.getElementById('terra-rider-list'); if (!list) return;
-            list.innerHTML = riderDirectory.length ? riderDirectory.map(r => `<div class="tc-rider"><strong>${escapeHTML(r.name)}</strong><p>${escapeHTML(r.phone)} • ${escapeHTML(r.vehicle)}</p><p>${!r.approved ? 'รออนุมัติ' : r.activeOrderId ? 'กำลังทำงาน' : r.online && Date.now() - (r.lastSeen?.toMillis() || 0) < 135000 ? 'ออนไลน์พร้อมรับงาน' : 'ออฟไลน์'}</p>${!r.approved ? `<button class="tc-btn" data-approve="${escapeHTML(r.id)}">อนุมัติไรเดอร์</button>` : ''}</div>`).join('') : '<p>ยังไม่มีไรเดอร์สมัคร</p>';
-            list.querySelectorAll('[data-approve]').forEach(btn => btn.onclick = async () => {btn.disabled = true;try {await connect.rpc('approveRider', {uid:btn.dataset.approve,approved:true});}catch(e){window.showCustomAlert(e.message);}finally{btn.disabled=false;}});
-        }
-        window.openRiderDirectory = () => {
-            if (!connect.user) {connect.openAccount();return;}
-            let dialog = document.getElementById('terra-rider-directory');
-            if (!dialog) {dialog = document.createElement('div');dialog.id = 'terra-rider-directory';dialog.className = 'tc-overlay';dialog.innerHTML = '<section class="tc-panel"><h2>ทีมไรเดอร์</h2><div id="terra-rider-list"></div><button class="tc-btn tc-sub" id="terra-rider-close">ปิด</button></section>';document.body.append(dialog);document.getElementById('terra-rider-close').onclick = () => dialog.hidden = true;}
-            dialog.hidden = false;renderRiderDirectory();
-        };
-        window.openRiderTracking = (orderId) => {
-            let dialog = document.getElementById('terra-live-rider');
-            if (dialog) dialog.remove();
-            dialog = document.createElement('div');dialog.id = 'terra-live-rider';dialog.className = 'tc-overlay';
-            dialog.innerHTML = '<section class="tc-panel"><h2>ติดตามไรเดอร์</h2><p id="terra-track-status"></p><div id="terra-track-map" style="height:300px;border-radius:14px"></div><p id="terra-track-time" class="tc-status"></p><div class="tc-row"><button class="tc-btn" id="terra-track-call">โทรหาไรเดอร์</button><button class="tc-btn tc-sub" id="terra-track-close">ปิด</button></div></section>';
-            document.body.append(dialog);let map = null, marker = null;
-            const unsub = onSnapshot(doc(db, 'orders', orderId), snap => {
-                const data = snap.data(); if (!data) return;
-                document.getElementById('terra-track-status').textContent = `${data.riderName || 'ยังไม่มีไรเดอร์'} • ${stageLabel(data.riderStage)}`;
-                const loc = data.riderLocation;
-                document.getElementById('terra-track-time').textContent = loc?.updatedAt ? 'พิกัดล่าสุด '+loc.updatedAt.toDate().toLocaleString('th-TH')+' • หากเวลานานแล้ว พิกัดอาจไม่ใช่ตำแหน่งปัจจุบัน' : 'ยังไม่ได้รับพิกัด ไรเดอร์ต้องเปิดการแชร์ตำแหน่ง';
-                if (Number.isFinite(loc?.lat) && Number.isFinite(loc?.lng)) {
-                    if (!map) {map = L.map('terra-track-map').setView([loc.lat,loc.lng],15);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);marker = L.marker([loc.lat,loc.lng]).addTo(map);if(data.location)L.marker([data.location.lat,data.location.lng]).addTo(map).bindPopup('จุดส่งลูกค้า');}
-                    else marker.setLatLng([loc.lat,loc.lng]);
-                }
-            }, e => {document.getElementById('terra-track-status').textContent=e.message;});
-            document.getElementById('terra-track-call').onclick = () => connect.startCall(orderId,'rider');
-            document.getElementById('terra-track-close').onclick = () => {unsub();map?.remove();dialog.remove();};
+            if(!riderName) return window.showCustomAlert('กรุณาระบุชื่อผู้จัดส่ง');
+
+            const btn = document.getElementById('btn-save-rider');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = 'กำลังดำเนินการ...'; btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "orders", orderId), { 
+                    status: 'กำลังจัดส่ง',
+                    riderName: riderName,
+                    riderPhone: riderPhone
+                });
+                closeDeliveryRiderModal();
+            } catch(e) {
+                window.showCustomAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            } finally {
+                btn.innerHTML = origHtml; btn.disabled = false;
+            }
         };
 
         window.viewOrderFullscreen = (orderId) => {
@@ -2062,7 +2001,7 @@
                             <h1 class="text-5xl font-bold text-white tracking-wide">${isDel ? (order.customer || 'ลูกค้า') : `โต๊ะ ${order.table || 'Walk-in'}`}</h1>
                             <p class="text-slate-400 mt-3 text-lg font-mono">รหัสอ้างอิง: ${window.formatOrderID(order.id)}</p>
                             ${isDel && order.address ? `<p class="text-slate-300 mt-2 text-lg"><i class="fas fa-map-marker-alt text-rose-400"></i> ${order.address}</p>` : ''}
-                            ${isDel && order.riderName ? `<p class="text-indigo-300 mt-2 text-lg"><i class="fas fa-motorcycle"></i> ผู้จัดส่ง: ${escapeHTML(order.riderName)} (${order.riderPhone||'-'})</p>` : ''}
+                            ${isDel && order.riderName ? `<p class="text-indigo-300 mt-2 text-lg"><i class="fas fa-motorcycle"></i> ผู้จัดส่ง: ${order.riderName} (${order.riderPhone||'-'})</p>` : ''}
                         </div>
                         <div class="text-right">
                             <p class="text-slate-400 text-lg">ยอดชำระสุทธิ</p>
